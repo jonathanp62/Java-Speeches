@@ -42,6 +42,8 @@ import java.util.*;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
+import net.jmp.speeches.store.Store;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -214,7 +216,14 @@ final class Speeches {
             this.logger.trace(entryWith(mongoClient));
         }
 
-        this.logger.info("Storing speeches: {}", this.speechesLocation);
+        final Store store = new Store.Builder()
+                .mongoClient(mongoClient)
+                .collectionName(this.mongoDbCollection)
+                .dbName(this.mongoDbName)
+                .speechesLocation(this.speechesLocation)
+                .build();
+
+        store.operate();
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());

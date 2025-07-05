@@ -36,7 +36,6 @@ import io.pinecone.clients.Pinecone;
 import io.pinecone.proto.ListResponse;
 
 import java.util.List;
-import java.util.Map;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
@@ -125,6 +124,104 @@ public abstract class Operation {
     /// The operate method.
     public abstract void operate();
 
+    /// Return true if the searchable index exists.
+    ///
+    /// @return boolean
+    protected boolean doesSearchableIndexExist() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final boolean result = this.doesIndexExist(this.searchableIndexName);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(result));
+        }
+
+        return result;
+    }
+
+    /// Check if the named index exists.
+    ///
+    /// @param  indexName   java.lang.String
+    /// @return             boolean
+    private boolean doesIndexExist(final String indexName) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(indexName));
+        }
+
+        boolean result = false;
+
+        final IndexList indexList = this.pinecone.listIndexes();
+        final List<IndexModel> indexes = indexList.getIndexes();
+
+        if (indexes != null) {
+            for (final IndexModel indexModel : indexes) {
+                if (indexModel.getName().equals(indexName)) {
+                    result = true;
+
+                    break;
+                }
+            }
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(result));
+        }
+
+        return result;
+    }
+
+    /// Check if the searchable index is loaded.
+    ///
+    /// @return boolean
+    protected boolean isSearchableIndexLoaded() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final boolean result = this.isNamedIndexLoaded(this.searchableIndexName, this.namespace);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(result));
+        }
+
+        return result;
+    }
+
+    /// Check if the named index is loaded.
+    ///
+    /// @param  indexName   java.lang.String
+    /// @param  namespace   java.lang.String
+    /// @return             boolean
+    private boolean isNamedIndexLoaded(final String indexName, final String namespace) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(indexName, namespace));
+        }
+
+        int vectorsCount = 0;
+
+        try (final Index index = this.pinecone.getIndexConnection(indexName)) {
+            final ListResponse response = index.list(namespace);
+
+            vectorsCount = response.getVectorsCount();
+        }
+
+        if (this.logger.isDebugEnabled()) {
+            this.logger.debug("Index name   : {}", indexName);
+            this.logger.debug("Namespace    : {}", namespace);
+            this.logger.debug("Vectors count: {}", vectorsCount);
+        }
+
+        final boolean result = vectorsCount > 0;
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(result));
+        }
+
+        return result;
+    }
+
     /// The operation builder class.
     protected static class OperationBuilder {
         /// The Pinecone client.
@@ -175,7 +272,7 @@ public abstract class Operation {
         ///
         /// @param  pinecone net.jmp.pinecone.Pinecone
         /// @return          net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder pinecone(final Pinecone pinecone) {
+        public OperationBuilder pinecone(final Pinecone pinecone) {
             this.pinecone = pinecone;
 
             return this;
@@ -185,7 +282,7 @@ public abstract class Operation {
         ///
         /// @param  chatModel   java.lang.String
         /// @return             net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder chatModel(final String chatModel) {
+        public OperationBuilder chatModel(final String chatModel) {
             this.chatModel = chatModel;
 
             return this;
@@ -195,7 +292,7 @@ public abstract class Operation {
         ///
         /// @param  searchableEmbeddingModel    java.lang.String
         /// @return                             net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder searchableEmbeddingModel(final String searchableEmbeddingModel) {
+        public OperationBuilder searchableEmbeddingModel(final String searchableEmbeddingModel) {
             this.searchableEmbeddingModel = searchableEmbeddingModel;
 
             return this;
@@ -205,7 +302,7 @@ public abstract class Operation {
         ///
         /// @param  searchableIndexName java.lang.String
         /// @return                     net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder searchableIndexName(final String searchableIndexName) {
+        public OperationBuilder searchableIndexName(final String searchableIndexName) {
             this.searchableIndexName = searchableIndexName;
 
             return this;
@@ -215,7 +312,7 @@ public abstract class Operation {
         ///
         /// @param  namespace java.lang.String
         /// @return           net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder namespace(final String namespace) {
+        public OperationBuilder namespace(final String namespace) {
             this.namespace = namespace;
 
             return this;
@@ -225,7 +322,7 @@ public abstract class Operation {
         ///
         /// @param  rerankingModel java.lang.String
         /// @return                net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder rerankingModel(final String rerankingModel) {
+        public OperationBuilder rerankingModel(final String rerankingModel) {
             this.rerankingModel = rerankingModel;
 
             return this;
@@ -235,7 +332,7 @@ public abstract class Operation {
         ///
         /// @param  queryText java.lang.String
         /// @return           net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder queryText(final String queryText) {
+        public OperationBuilder queryText(final String queryText) {
             this.queryText = queryText;
 
             return this;
@@ -245,7 +342,7 @@ public abstract class Operation {
         ///
         /// @param  openAiApiKey java.lang.String
         /// @return              net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder openAiApiKey(final String openAiApiKey) {
+        public OperationBuilder openAiApiKey(final String openAiApiKey) {
             this.openAiApiKey = openAiApiKey;
 
             return this;
@@ -255,7 +352,7 @@ public abstract class Operation {
         ///
         /// @param  mongoClient com.mongodb.client.MongoClient
         /// @return             net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder mongoClient(final MongoClient mongoClient) {
+        public OperationBuilder mongoClient(final MongoClient mongoClient) {
             this.mongoClient = mongoClient;
 
             return this;
@@ -265,7 +362,7 @@ public abstract class Operation {
         ///
         /// @param  collectionName java.lang.String
         /// @return                net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder collectionName(final String collectionName) {
+        public OperationBuilder collectionName(final String collectionName) {
             this.collectionName = collectionName;
 
             return this;
@@ -275,7 +372,7 @@ public abstract class Operation {
         ///
         /// @param  dbName java.lang.String
         /// @return        net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder dbName(final String dbName) {
+        public OperationBuilder dbName(final String dbName) {
             this.dbName = dbName;
 
             return this;
@@ -285,7 +382,7 @@ public abstract class Operation {
         ///
         /// @param  speechesLocation    java.lang.String
         /// @return                     net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder speechesLocation(final String speechesLocation) {
+        public OperationBuilder speechesLocation(final String speechesLocation) {
             this.speechesLocation = speechesLocation;
 
             return this;
@@ -295,7 +392,7 @@ public abstract class Operation {
         ///
         /// @param  topK    int
         /// @return         net.jmp.speeches.Operation.OperationBuilder
-        protected OperationBuilder topK(final int topK) {
+        public OperationBuilder topK(final int topK) {
             this.topK = topK;
 
             return this;
