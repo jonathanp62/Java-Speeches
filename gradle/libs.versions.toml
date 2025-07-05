@@ -1,0 +1,59 @@
+#
+# (#)libs.versions.toml 0.1.0   07/05/2025
+#
+#  @author   Jonathan Parker
+#  @version  0.1.0
+#  @since    0.1.0
+#
+#  MIT License
+#
+#  Copyright (c) 2025 Jonathan M. Parker
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+# 
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#  
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+[versions]
+ch-qos-logback-logback-classic = "1.5.18"
+ch-qos-logback-logback-core = "1.5.18"
+com-openai-openai-java = "1.6.1"
+edu-stanford-nlp-stanford-corenlp = "4.5.5"
+io-pinecone-pinecone-client = "5.1.0"
+net-jmp-util-logging-logging-utilities = "1.2.0"
+org-mongodb-mongodb-driver-sync = "5.5.0"
+org-slf4j-slf4j-api = "2.0.17"
+
+[libraries]
+ch-qos-logback-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "ch-qos-logback-logback-classic" }
+ch-qos-logback-logback-core = { module = "ch.qos.logback:logback-core", version.ref = "ch-qos-logback-logback-core" }
+com-openai-openai-java = { module = "com.openai:openai-java", version.ref = "com-openai-openai-java" }
+edu-stanford-nlp-stanford-corenlp = { module = "edu.stanford.nlp:stanford-corenlp", version.ref = "edu-stanford-nlp-stanford-corenlp" }
+io-pinecone-pinecone-client = { module = "io.pinecone:pinecone-client", version.ref = "io-pinecone-pinecone-client" }
+net-jmp-util-logging-logging-utilities = { module = "net.jmp.util.logging:logging-utilities", version.ref = "net-jmp-util-logging-logging-utilities" }
+org-mongodb-mongodb-driver-sync = { module = "org.mongodb:mongodb-driver-sync", version.ref = "org-mongodb-mongodb-driver-sync" }
+org-slf4j-slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "org-slf4j-slf4j-api" }
+
+[bundles]
+logging = [
+    "ch-qos-logback-logback-classic",
+    "net-jmp-util-logging-logging-utilities",
+    "org-slf4j-slf4j-api"
+]
+
+logging-runtime = [
+    "ch-qos-logback-logback-core"
+]

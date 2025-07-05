@@ -1,0 +1,69 @@
+Speeches
+--------
+
+Presidential speeches used to work with NLP and AI.
+
+Things I need
+~~~~~~~~~~~~~
+
+* A Pinecone account
+* A Pinecone API key
+* A MongoDB account
+* A MongoDB URI
+* A MongoDB collection
+** Speeches
+* An OpenAI API key
+
+Loading Data
+~~~~~~~~~~~~
+
+The unstructured text is initially placed in the UnstructeredText class in the text package. When more data is added to it, run the following tasks:
+
+ - store
+ - delete
+ - create
+ - load
+
+The store task deletes all the content from the collection in MongoDB and reloads it with the files in the $HOME/Documents/Speeches directory.
+
+The delete task deletes the index from Pinecone.
+
+The create task creates the index in Pinecone.
+
+The load task loads the Pinecone index from the MongoDB collection.
+
+Gradle JavaExec Tasks
+~~~~~~~~~~~~~~~~~~~~~
+
+[options="header"]
+|====================================================
+|Task Name            |Application Invocation
+|create               |Optional: --args="--log-level"
+|delete               |Optional: --args="--log-level"
+|load                 |Optional: --args="--log-level"
+|search               |Optional: --args="--log-level"
+|store                |Optional: --args="--log-level"
+|====================================================
+
+System Properties
+~~~~~~~~~~~~~~~~~
+
+[options="header"]
+|===================================================
+|Property Name               |Value
+|app.chatModel               |gpt-4.1
+|app.mongoDbCollection       |quickstart
+|app.mongoDbName             |pinecone_quickstart
+|app.mongoDbUri              |etc/mongo-db-uri.txt
+|app.namespace               |quickstart-namespace
+|app.openaiApiKey            |etc/open-ai-api-key.txt
+|app.pineconeApiKey          |etc/pinecone-api-key.txt
+|app.rerankingModel          |bge-reranker-v2-m3
+|app.queryText               |Variable by Gradle task
+|app.searchableEmbeddingModel|pinecone-sparse-english-v0
+|app.searchableIndexName     |quickstart-sparse
+|app.topK                    |10
+|===================================================
+
+Current version: 0.1.0.
+~~~~~~~~~~~~~~~~~~~~~~~
