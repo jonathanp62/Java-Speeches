@@ -28,6 +28,8 @@ package net.jmp.speeches.delete;
  * SOFTWARE.
  */
 
+import net.jmp.speeches.Operation;
+
 import static net.jmp.util.logging.LoggerUtils.*;
 
 import org.slf4j.Logger;
@@ -37,7 +39,24 @@ import org.slf4j.LoggerFactory;
 ///
 /// @version    0.1.0
 /// @since      0.1.0
-public final class Delete {
+public final class Delete extends Operation {
     /// The logger.
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+
+    /// The constructor.
+    public Delete() {
+        super(Operation.operationBuilder());
+    }
+
+    /// The operate method.
+    @Override
+    public void operate() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
 }

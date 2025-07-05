@@ -1,0 +1,304 @@
+package net.jmp.speeches;
+
+/*
+ * (#)Operation.java    0.1.0   07/05/2025
+ *
+ * @author   Jonathan Parker
+ *
+ * MIT License
+ *
+ * Copyright (c) 2025 Jonathan M. Parker
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+import com.mongodb.client.MongoClient;
+
+import io.pinecone.clients.Index;
+import io.pinecone.clients.Pinecone;
+
+import io.pinecone.proto.ListResponse;
+
+import java.util.List;
+import java.util.Map;
+
+import static net.jmp.util.logging.LoggerUtils.*;
+
+import org.openapitools.db_control.client.model.IndexList;
+import org.openapitools.db_control.client.model.IndexModel;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+///
+/// The abstract operation class.
+///
+/// @version    0.1.0
+/// @since      0.1.0
+public abstract class Operation {
+    /// The logger.
+    private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+
+    /// The Pinecone client.
+    protected final Pinecone pinecone;
+
+    /// The chat model.
+    protected final String chatModel;
+
+    /// The searchable embedding model.
+    protected final String searchableEmbeddingModel;
+
+    /// The searchable index name.
+    protected final String searchableIndexName;
+
+    /// The namespace.
+    protected final String namespace;
+
+    /// The reranking model.
+    protected final String rerankingModel;
+
+    /// The query text.
+    protected final String queryText;
+
+    /// The OpenAI API key.
+    protected final String openAiApiKey;
+
+    /// The MongoDB client.
+    protected final MongoClient mongoClient;
+
+    /// The MongoDB collection name.
+    protected final String collectionName;
+
+    /// The MongoDB database name.
+    protected final String dbName;
+
+    /// The location of the speeches.
+    protected final String speechesLocation;
+
+    /// The number of top results to return when querying.
+    protected final int topK;
+
+    /// The constructor.
+    ///
+    /// @param operationBuilder net.jmp.speeches.Operation.OperationBuilder
+    protected Operation(final OperationBuilder operationBuilder) {
+        super();
+
+        this.pinecone = operationBuilder.pinecone;
+        this.chatModel = operationBuilder.chatModel;
+        this.searchableEmbeddingModel = operationBuilder.searchableEmbeddingModel;
+        this.searchableIndexName = operationBuilder.searchableIndexName;
+        this.namespace = operationBuilder.namespace;
+        this.rerankingModel = operationBuilder.rerankingModel;
+        this.queryText = operationBuilder.queryText;
+        this.openAiApiKey = operationBuilder.openAiApiKey;
+        this.mongoClient = operationBuilder.mongoClient;
+        this.collectionName = operationBuilder.collectionName;
+        this.dbName = operationBuilder.dbName;
+        this.speechesLocation = operationBuilder.speechesLocation;
+        this.topK = operationBuilder.topK;
+    }
+
+    /// Return the operation builder.
+    ///
+    /// @return net.jmp.speeches.Operation.OperationBuilder
+    protected static OperationBuilder operationBuilder() {
+        return new OperationBuilder();
+    }
+
+    /// The operate method.
+    public abstract void operate();
+
+    /// The operation builder class.
+    protected static class OperationBuilder {
+        /// The Pinecone client.
+        private Pinecone pinecone;
+
+        /// The chat model.
+        private String chatModel;
+
+        /// The searchable embedding model.
+        private String searchableEmbeddingModel;
+
+        /// The searchable index name.
+        private String searchableIndexName;
+
+        /// The namespace.
+        private String namespace;
+
+        /// The reranking model.
+        private String rerankingModel;
+
+        /// The query text.
+        private String queryText;
+
+        /// The OpenAI API key.
+        private String openAiApiKey;
+
+        /// The MongoDB client.
+        private MongoClient mongoClient;
+
+        /// The MongoDB collection name.
+        private String collectionName;
+
+        /// The MongoDB database name.
+        private String dbName;
+
+        /// The location of the speeches.
+        private String speechesLocation;
+
+        /// The number of top results to return when querying.
+        private int topK;
+
+        /// The default constructor.
+        protected OperationBuilder() {
+            super();
+        }
+
+        /// Set the Pinecone client.
+        ///
+        /// @param  pinecone net.jmp.pinecone.Pinecone
+        /// @return          net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder pinecone(final Pinecone pinecone) {
+            this.pinecone = pinecone;
+
+            return this;
+        }
+
+        /// Set the chat model.
+        ///
+        /// @param  chatModel   java.lang.String
+        /// @return             net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder chatModel(final String chatModel) {
+            this.chatModel = chatModel;
+
+            return this;
+        }
+
+        /// Set the searchable embedding model.
+        ///
+        /// @param  searchableEmbeddingModel    java.lang.String
+        /// @return                             net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder searchableEmbeddingModel(final String searchableEmbeddingModel) {
+            this.searchableEmbeddingModel = searchableEmbeddingModel;
+
+            return this;
+        }
+
+        /// Set the searchable index name.
+        ///
+        /// @param  searchableIndexName java.lang.String
+        /// @return                     net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder searchableIndexName(final String searchableIndexName) {
+            this.searchableIndexName = searchableIndexName;
+
+            return this;
+        }
+
+        /// Set the namespace.
+        ///
+        /// @param  namespace java.lang.String
+        /// @return           net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder namespace(final String namespace) {
+            this.namespace = namespace;
+
+            return this;
+        }
+
+        /// Set the reranking model.
+        ///
+        /// @param  rerankingModel java.lang.String
+        /// @return                net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder rerankingModel(final String rerankingModel) {
+            this.rerankingModel = rerankingModel;
+
+            return this;
+        }
+
+        /// Set the query text.
+        ///
+        /// @param  queryText java.lang.String
+        /// @return           net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder queryText(final String queryText) {
+            this.queryText = queryText;
+
+            return this;
+        }
+
+        /// Set the OpenAI API key.
+        ///
+        /// @param  openAiApiKey java.lang.String
+        /// @return              net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder openAiApiKey(final String openAiApiKey) {
+            this.openAiApiKey = openAiApiKey;
+
+            return this;
+        }
+
+        /// Set the MongoDB client.
+        ///
+        /// @param  mongoClient com.mongodb.client.MongoClient
+        /// @return             net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder mongoClient(final MongoClient mongoClient) {
+            this.mongoClient = mongoClient;
+
+            return this;
+        }
+
+        /// Set the MongoDB collection name.
+        ///
+        /// @param  collectionName java.lang.String
+        /// @return                net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder collectionName(final String collectionName) {
+            this.collectionName = collectionName;
+
+            return this;
+        }
+
+        /// Set the MongoDB database name.
+        ///
+        /// @param  dbName java.lang.String
+        /// @return        net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder dbName(final String dbName) {
+            this.dbName = dbName;
+
+            return this;
+        }
+
+        /// Set the location of the speeches.
+        ///
+        /// @param  speechesLocation    java.lang.String
+        /// @return                     net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder speechesLocation(final String speechesLocation) {
+            this.speechesLocation = speechesLocation;
+
+            return this;
+        }
+
+        /// Set the topK value.
+        ///
+        /// @param  topK    int
+        /// @return         net.jmp.speeches.Operation.OperationBuilder
+        protected OperationBuilder topK(final int topK) {
+            this.topK = topK;
+
+            return this;
+        }
+    }
+}

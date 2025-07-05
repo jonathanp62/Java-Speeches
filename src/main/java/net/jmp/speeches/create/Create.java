@@ -28,6 +28,8 @@ package net.jmp.speeches.create;
  * SOFTWARE.
  */
 
+import net.jmp.speeches.Operation;
+
 import static net.jmp.util.logging.LoggerUtils.*;
 
 import org.slf4j.Logger;
@@ -37,7 +39,24 @@ import org.slf4j.LoggerFactory;
 ///
 /// @version    0.1.0
 /// @since      0.1.0
-public final class Create {
+public final class Create extends Operation {
     /// The logger.
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+
+    /// The constructor.
+    public Create() {
+        super(Operation.operationBuilder());
+    }
+
+    /// The operate method.
+    @Override
+    public void operate() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
 }
