@@ -49,6 +49,8 @@ import net.jmp.speeches.Operation;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
+import org.jetbrains.annotations.NotNull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -196,8 +198,10 @@ public final class Store extends Operation {
         final List<File> filesList = new ArrayList<>();
 
         Files.walkFileTree(Path.of(this.speechesLocation), new SimpleFileVisitor<Path>() {
+            @NotNull
             @Override
-            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) {
+            public FileVisitResult visitFile(@NotNull final Path path,
+                                             @NotNull final BasicFileAttributes attrs) {
                 final File file = path.toFile();
 
                 filesList.add(path.toFile());
