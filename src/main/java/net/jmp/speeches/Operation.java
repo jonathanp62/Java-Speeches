@@ -93,6 +93,9 @@ public abstract class Operation {
     /// The number of top results to return when querying.
     protected final int topK;
 
+    /// The maximum number of tokens when embedding.
+    protected final int maxTokens;
+
     /// The constructor.
     ///
     /// @param operationBuilder net.jmp.speeches.Operation.OperationBuilder
@@ -112,6 +115,7 @@ public abstract class Operation {
         this.dbName = operationBuilder.dbName;
         this.speechesLocation = operationBuilder.speechesLocation;
         this.topK = operationBuilder.topK;
+        this.maxTokens = operationBuilder.maxTokens;
     }
 
     /// Return the operation builder.
@@ -263,6 +267,9 @@ public abstract class Operation {
         /// The number of top results to return when querying.
         private int topK;
 
+        /// The maximum number of tokens when embedding.
+        private int maxTokens;
+
         /// The default constructor.
         protected OperationBuilder() {
             super();
@@ -394,6 +401,16 @@ public abstract class Operation {
         /// @return         net.jmp.speeches.Operation.OperationBuilder
         public OperationBuilder topK(final int topK) {
             this.topK = topK;
+
+            return this;
+        }
+
+        /// Set the maximum number of tokens.
+        ///
+        /// @param  maxTokens   int
+        /// @return             net.jmp.speeches.Operation.OperationBuilder
+        public OperationBuilder maxTokens(final int maxTokens) {
+            this.maxTokens = maxTokens;
 
             return this;
         }

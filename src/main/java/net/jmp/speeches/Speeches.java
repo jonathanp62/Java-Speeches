@@ -91,6 +91,9 @@ final class Speeches {
     /// The number of top results to return when querying.
     private final int topK;
 
+    /// The maximum number of tokens when embedding.
+    private final int maxTokens;
+
     /// The constructor.
     ///
     /// @param  builder net.jmp.speeches.Speeches.Builder
@@ -108,6 +111,7 @@ final class Speeches {
         this.queryText = builder.queryText;
         this.speechesLocation = builder.speechesLocation;
         this.topK = builder.topK;
+        this.maxTokens = builder.maxTokens;
     }
 
     /// The builder method.
@@ -360,6 +364,9 @@ final class Speeches {
         /// The number of top results to return when querying.
         private int topK;
 
+        /// The maximum number of tokens when embedding.
+        private int maxTokens;
+
         /// The default constructor.
         Builder() {
             super();
@@ -471,6 +478,16 @@ final class Speeches {
         /// @return         net.jmp.speeches.Speeches.Builder
         public Builder topK(final int topK) {
             this.topK = topK;
+
+            return this;
+        }
+
+        /// Set the maximum number of tokens.
+        ///
+        /// @param  maxTokens   int
+        /// @return             net.jmp.speeches.Speeches.Builder
+        public Builder maxTokens(final int maxTokens) {
+            this.maxTokens = maxTokens;
 
             return this;
         }

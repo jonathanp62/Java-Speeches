@@ -47,6 +47,7 @@ apply plugin: 'net.jmp.gradle.plugin.projectinfo-info'
 ext {
 	chatModel = 'gpt-4.1'
 	javaMainClass = 'net.jmp.speeches.Main'
+	maxTokens = 512
 	mongoDbCollection = 'speeches'
 	mongoDbName = 'speeches'
 	mongoDbUri = 'etc/mongo-db-uri.txt'
@@ -119,6 +120,7 @@ tasks.withType(JavaExec).configureEach {
 	systemProperties(
 			[
  			 'app.chatModel': chatModel,
+ 			 'app.maxTokens': maxTokens,
 			 'app.mongoDbCollection': mongoDbCollection,
 			 'app.mongoDbName': mongoDbName,
 			 'app.mongoDbUri': mongoDbUri,

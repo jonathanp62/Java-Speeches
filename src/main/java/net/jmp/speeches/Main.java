@@ -69,6 +69,7 @@ public final class Main implements Runnable {
         final String operation = System.getProperty("app.operation");
 
         final String chatModel = System.getProperty("app.chatModel");
+        final String maxTokens = System.getProperty("app.maxTokens");
         final String mongoDbCollection = System.getProperty("app.mongoDbCollection");
         final String mongoDbName = System.getProperty("app.mongoDbName");
         final String mongoDbUriFile = System.getProperty("app.mongoDbUri");
@@ -82,6 +83,7 @@ public final class Main implements Runnable {
 
         this.logger.info("Operation                 : {}", operation);
         this.logger.info("Chat Model                : {}", chatModel);
+        this.logger.info("Maximum Tokens            : {}", maxTokens);
         this.logger.info("MongoDB Collection        : {}", mongoDbCollection);
         this.logger.info("MongoDB Name              : {}", mongoDbName);
         this.logger.info("MongoDB URI File          : {}", mongoDbUriFile);
@@ -105,6 +107,7 @@ public final class Main implements Runnable {
                 .queryText(queryText)
                 .speechesLocation(speechesLocation)
                 .topK(Integer.parseInt(topK))
+                .maxTokens(Integer.parseInt(maxTokens))
                 .build();
 
         speeches.start(operation);
