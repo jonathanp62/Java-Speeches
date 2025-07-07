@@ -74,7 +74,7 @@ public final class TextAnalyzer {
 
         /* Set the list of annotators to run - The order is significant */
 
-        props.setProperty("annotators", "tokenize,pos,lemma,ner,parse,depparse");
+        props.setProperty("annotators", "tokenize");
 
         /* Set up the pipeline */
 
@@ -120,7 +120,7 @@ public final class TextAnalyzer {
         for (final String string : paragraphs) {
             final TextAnalyzerResponse.Paragraph paragraph = new TextAnalyzerResponse.Paragraph();
 
-            paragraph.setNumber(++paragraphNumber);
+            paragraph.setNumber(paragraphNumber++);
             paragraph.setText(string);
 
             this.handleSentences(paragraph);
@@ -150,7 +150,7 @@ public final class TextAnalyzer {
         for (final CoreSentence coreSentence : document.sentences()) {
             final TextAnalyzerResponse.Paragraph.Sentence sentence = new TextAnalyzerResponse.Paragraph.Sentence();
 
-            sentence.setNumber(++sentenceNumber);
+            sentence.setNumber(sentenceNumber++);
             sentence.setText(coreSentence.text());
             sentence.setTokens(coreSentence.tokensAsStrings());
 

@@ -29,14 +29,13 @@ package net.jmp.speeches.store;
  */
 
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 
 import java.io.File;
 import java.io.IOException;
 
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 
 import java.nio.file.attribute.BasicFileAttributes;
 
@@ -46,6 +45,9 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 import net.jmp.speeches.Operation;
+
+import net.jmp.speeches.text.TextAnalyzer;
+import net.jmp.speeches.text.TextAnalyzerResponse;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
@@ -135,11 +137,54 @@ public final class Store extends Operation {
         final String fileName = file.getName();
         final long fileSize = file.length();
 
+        String text = null;
+
+        try {
+            text = Files.readString(file.toPath()).trim();
+        } catch (final IOException ioe) {
+            this.logger.error("Unable to read file: {}", file.getAbsolutePath(), ioe);
+        }
+
+        TextAnalyzerResponse response = null;
+
+        if (text != null) {
+            response = TextAnalyzer.builder()
+                    .text(text)
+                    .title(title)
+                    .author(author)
+                    .build()
+                    .analyze();
+        }
+
         if (this.logger.isDebugEnabled()) {
-            this.logger.debug("Author   : {}", author);
-            this.logger.debug("Title    : {}", title);
-            this.logger.debug("File name: {}", fileName);
-            this.logger.debug("File size: {}", fileSize);
+            this.logger.debug("Response: {}", response);
+        }
+
+        if (response != null) {
+            if (this.logger.isInfoEnabled()) {
+                this.logger.info("Author    : {}", author);
+                this.logger.info("Title     : {}", title);
+                this.logger.info("File name : {}", fileName);
+                this.logger.info("File size : {}", fileSize);
+                this.logger.info("Size      : {}", response.getSize());
+                this.logger.info("Paragraphs: {}", response.getNumberOfParagraphs());
+                this.logger.info("Sentences : {}", response.getNumberOfSentences());
+                this.logger.info("Tokens    : {}", response.getNumberOfTokens());
+            }
+
+            final MongoDocument document = new MongoDocument();
+
+            document.setFileName(fileName);
+            document.setFileSize(fileSize);
+            document.setTotalParagraphs(response.getNumberOfParagraphs());
+            document.setTotalSentences(response.getNumberOfSentences());
+            document.setTotalTokens(response.getNumberOfTokens());
+            document.setTextAnalysis(response);
+
+            final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
+            final MongoCollection<MongoDocument> collection = database.getCollection(this.collectionName, MongoDocument.class);
+
+            this.logger.info("Inserted  : {}", collection.insertOne(document).getInsertedId());
         }
 
         if (this.logger.isTraceEnabled()) {

@@ -28,6 +28,9 @@ package net.jmp.speeches;
  * SOFTWARE.
  */
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 
@@ -43,6 +46,13 @@ import java.util.*;
 import static net.jmp.util.logging.LoggerUtils.*;
 
 import net.jmp.speeches.store.Store;
+
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
+
+import org.bson.codecs.configuration.CodecRegistry;
+
+import org.bson.codecs.pojo.PojoCodecProvider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,7 +145,19 @@ final class Speeches {
         final String pineconeApiKey = this.getPineconeApiKey().orElseThrow(() -> new RuntimeException("Pinecone API key not found"));
         final Pinecone pinecone = new Pinecone.Builder(pineconeApiKey).build();
 
-        try (final MongoClient mongoClient = MongoClients.create(mongoDbUri)) {
+        final CodecRegistry pojoCodecRegistry = fromRegistries(
+                MongoClientSettings.getDefaultCodecRegistry(),
+                fromProviders(PojoCodecProvider.builder().automatic(true).build())
+        );
+
+        final ConnectionString connectionString = new ConnectionString(mongoDbUri);
+
+        final MongoClientSettings mongoDbSettings = MongoClientSettings.builder()
+                .applyConnectionString(connectionString)
+                .codecRegistry(pojoCodecRegistry)
+                .build();
+
+        try (final MongoClient mongoClient = MongoClients.create(mongoDbSettings)) {
             switch (operation) {
                 case "create" -> this.create(pinecone);
                 case "delete" -> this.delete(pinecone);

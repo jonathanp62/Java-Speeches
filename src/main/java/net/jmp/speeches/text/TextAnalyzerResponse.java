@@ -31,6 +31,8 @@ package net.jmp.speeches.text;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bson.codecs.pojo.annotations.BsonIgnore;
+
 /// The text analyzer response class.
 ///
 /// @version    0.1.0
@@ -281,6 +283,7 @@ public final class TextAnalyzerResponse {
             private long size;
 
             /// The tokens.
+            @BsonIgnore
             private List<String> tokens;
 
             /// The default constructor.
