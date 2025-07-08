@@ -1,6 +1,7 @@
 package net.jmp.speeches.load;
 
 /*
+ * (#)Load.java 0.3.0   07/08/2025
  * (#)Load.java 0.1.0   07/05/2025
  *
  * @author   Jonathan Parker
@@ -28,6 +29,10 @@ package net.jmp.speeches.load;
  * SOFTWARE.
  */
 
+import com.mongodb.client.MongoClient;
+
+import io.pinecone.clients.Pinecone;
+
 import net.jmp.speeches.Operation;
 
 import static net.jmp.util.logging.LoggerUtils.*;
@@ -37,15 +42,32 @@ import org.slf4j.LoggerFactory;
 
 /// The load Pinecone index from MongoDB class.
 ///
-/// @version    0.1.0
+/// @version    0.3.0
 /// @since      0.1.0
 public final class Load extends Operation {
     /// The logger.
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     /// The constructor.
-    public Load() {
-        super(Operation.operationBuilder());
+    ///
+    /// @param  builder net.jmp.speeches.load.Load.Builder
+    public Load(final Builder builder) {
+        super(Operation.operationBuilder()
+                .pinecone(builder.pinecone)
+                .searchableEmbeddingModel(builder.searchableEmbeddingModel)
+                .searchableIndexName(builder.searchableIndexName)
+                .namespace(builder.namespace)
+                .mongoClient(builder.mongoClient)
+                .collectionName(builder.collectionName)
+                .dbName(builder.dbName)
+        );
+    }
+
+    /// Return the builder.
+    ///
+    /// @return  net.jmp.speeches.load.Load.Builder
+    public static Builder builder() {
+        return new Builder();
     }
 
     /// The operate method.
@@ -55,8 +77,122 @@ public final class Load extends Operation {
             this.logger.trace(entry());
         }
 
+        this.logger.info("Searchable index: {}", this.searchableIndexName);
+        this.logger.info("Embedding model : {}", this.searchableEmbeddingModel);
+        this.logger.info("Namespace       : {}", this.namespace);
+
+        if (this.doesSearchableIndexExist() && !this.isSearchableIndexLoaded()) {
+            this.logger.info("Loading searchable index: {}", this.searchableIndexName);
+        }
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
+        }
+    }
+
+    /// The builder class.
+    public static class Builder {
+        /// The pinecone client.
+        private Pinecone pinecone;
+        
+        /// The searchable embedding model.
+        private String searchableEmbeddingModel;
+        
+        /// The searchable index name.
+        private String searchableIndexName;
+        
+        /// The namespace.
+        private String namespace;
+
+        /// The mongo client.
+        private MongoClient mongoClient;
+
+        /// The collection name.
+        private String collectionName;
+
+        /// The database name.
+        private String dbName;
+
+        /// The default constructor.
+        private Builder() {
+            super();
+        }
+
+        /// Set the pinecone client.
+        ///
+        /// @param  pinecone    net.jmp.speeches.Pinecone
+        /// @return             net.jmp.speeches.load.Load.Builder
+        public Builder pinecone(final Pinecone pinecone) {
+            this.pinecone = pinecone;
+
+            return this;
+        }
+        
+        /// Set the searchable embedding model.
+        ///
+        /// @param  searchableEmbeddingModel    java.lang.String
+        /// @return                             net.jmp.speeches.load.Load.Builder
+        public Builder searchableEmbeddingModel(final String searchableEmbeddingModel) {
+            this.searchableEmbeddingModel = searchableEmbeddingModel;
+
+            return this;
+        }
+        
+        /// Set the searchable index name.
+        ///
+        /// @param  searchableIndexName java.lang.String
+        /// @return                     net.jmp.speeches.load.Load.Builder
+        public Builder searchableIndexName(final String searchableIndexName) {
+            this.searchableIndexName = searchableIndexName;
+
+            return this;
+        }
+        
+        /// Set the namespace.
+        ///
+        /// @param  namespace   java.lang.String
+        /// @return             net.jmp.speeches.load.Load.Builder
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
+
+            return this;
+        }
+
+        /// Set the mongo client.
+        ///
+        /// @param  mongoClient io.mongodb.client.MongoClient
+        /// @return             net.jmp.speeches.load.Load.Builder
+        public Builder mongoClient(final MongoClient mongoClient) {
+            this.mongoClient = mongoClient;
+
+            return this;
+        }
+
+        /// Set the collection name.
+        ///
+        /// @param  collectionName java.lang.String
+        /// @return                net.jmp.speeches.load.Load.Builder
+        public Builder collectionName(final String collectionName) {
+            this.collectionName = collectionName;
+
+            return this;
+        }
+
+        /// Set the database name.
+        ///
+        /// @param  dbName java.lang.String
+        /// @return        net.jmp.speeches.load.Load.Builder
+        public Builder dbName(final String dbName) {
+            this.dbName = dbName;
+
+            return this;
+        }
+
+        /// Build the load index.
+        ///
+        /// @return net.jmp.speeches.load.Load
+        public Load build() {
+            return new Load(this);
         }
     }
 }

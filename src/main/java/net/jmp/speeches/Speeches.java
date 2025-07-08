@@ -47,6 +47,7 @@ import java.util.*;
 import static net.jmp.util.logging.LoggerUtils.*;
 
 import net.jmp.speeches.create.Create;
+import net.jmp.speeches.load.Load;
 import net.jmp.speeches.store.Store;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
@@ -236,7 +237,17 @@ final class Speeches {
             this.logger.trace(entryWith(pinecone, mongoClient));
         }
 
-        this.logger.info("Loading Pinecone index: {}", this.searchableIndexName);
+        final Load load = Load.builder()
+                .searchableEmbeddingModel(this.searchableEmbeddingModel)
+                .searchableIndexName(this.searchableIndexName)
+                .namespace(this.namespace)
+                .pinecone(pinecone)
+                .mongoClient(mongoClient)
+                .collectionName(this.mongoDbCollection)
+                .dbName(this.mongoDbName)
+                .build();
+
+        load.operate();
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
