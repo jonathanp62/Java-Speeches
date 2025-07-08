@@ -141,23 +141,10 @@ final class Speeches {
 
         this.openAiApiKey = this.getOpenAIApiKey().orElseThrow(() -> new RuntimeException("OpenAI API key not found"));
 
-        final String mongoDbUri = this.getMongoDbUri().orElseThrow(() -> new RuntimeException("MongoDB URI not found"));
         final String pineconeApiKey = this.getPineconeApiKey().orElseThrow(() -> new RuntimeException("Pinecone API key not found"));
         final Pinecone pinecone = new Pinecone.Builder(pineconeApiKey).build();
 
-        final CodecRegistry pojoCodecRegistry = fromRegistries(
-                MongoClientSettings.getDefaultCodecRegistry(),
-                fromProviders(PojoCodecProvider.builder().automatic(true).build())
-        );
-
-        final ConnectionString connectionString = new ConnectionString(mongoDbUri);
-
-        final MongoClientSettings mongoDbSettings = MongoClientSettings.builder()
-                .applyConnectionString(connectionString)
-                .codecRegistry(pojoCodecRegistry)
-                .build();
-
-        try (final MongoClient mongoClient = MongoClients.create(mongoDbSettings)) {
+        try (final MongoClient mongoClient = MongoClients.create(this.getMongoDbSettings())) {
             switch (operation) {
                 case "create" -> this.create(pinecone);
                 case "delete" -> this.delete(pinecone);
@@ -171,6 +158,34 @@ final class Speeches {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
+    }
+
+    /// Get the MongoDB settings.
+    ///
+    /// @return com.mongodb.MongoClientSettings
+    private MongoClientSettings getMongoDbSettings() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final String mongoDbUri = this.getMongoDbUri().orElseThrow(() -> new RuntimeException("MongoDB URI not found"));
+        final ConnectionString connectionString = new ConnectionString(mongoDbUri);
+
+        final CodecRegistry pojoCodecRegistry = fromRegistries(
+                MongoClientSettings.getDefaultCodecRegistry(),
+                fromProviders(PojoCodecProvider.builder().automatic(true).build())
+        );
+
+        final MongoClientSettings mongoDbSettings = MongoClientSettings.builder()
+                .applyConnectionString(connectionString)
+                .codecRegistry(pojoCodecRegistry)
+                .build();
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(mongoDbSettings));
+        }
+
+        return mongoDbSettings;
     }
 
     /// Create the Pinecone index.

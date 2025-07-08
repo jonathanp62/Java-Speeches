@@ -172,20 +172,39 @@ public final class Store extends Operation {
                 this.logger.info("Tokens    : {}", response.getNumberOfTokens());
             }
 
-            final MongoDocument document = new MongoDocument();
-
-            document.setFileName(fileName);
-            document.setFileSize(fileSize);
-            document.setTotalParagraphs(response.getNumberOfParagraphs());
-            document.setTotalSentences(response.getNumberOfSentences());
-            document.setTotalTokens(response.getNumberOfTokens());
-            document.setTextAnalysis(response);
-
-            final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
-            final MongoCollection<MongoDocument> collection = database.getCollection(this.collectionName, MongoDocument.class);
-
-            this.logger.info("Inserted  : {}", collection.insertOne(document).getInsertedId());
+            this.insertMongoDocument(fileName, fileSize, response);
         }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Insert the document into MongoDB.
+    ///
+    /// @param  fileName            java.lang.String
+    /// @param  fileSize            long
+    /// @param  textAnalysisResponse net.jmp.speeches.text.TextAnalyzerResponse
+    private void insertMongoDocument(final String fileName,
+                                     final long fileSize,
+                                     final TextAnalyzerResponse textAnalysisResponse) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(fileName, fileSize, textAnalysisResponse));
+        }
+
+        final MongoDocument document = new MongoDocument();
+
+        document.setFileName(fileName);
+        document.setFileSize(fileSize);
+        document.setTotalParagraphs(textAnalysisResponse.getNumberOfParagraphs());
+        document.setTotalSentences(textAnalysisResponse.getNumberOfSentences());
+        document.setTotalTokens(textAnalysisResponse.getNumberOfTokens());
+        document.setTextAnalysis(textAnalysisResponse);
+
+        final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
+        final MongoCollection<MongoDocument> collection = database.getCollection(this.collectionName, MongoDocument.class);
+
+        this.logger.info("Inserted  : {}", collection.insertOne(document).getInsertedId());
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
