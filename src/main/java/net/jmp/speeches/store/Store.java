@@ -1,6 +1,7 @@
 package net.jmp.speeches.store;
 
 /*
+ * (#)Store.java    0.2.0   07/08/2025
  * (#)Store.java    0.1.0   07/05/2025
  *
  * @author   Jonathan Parker
@@ -64,7 +65,7 @@ import org.slf4j.LoggerFactory;
 
 /// The store speeches into MongoDB class.
 ///
-/// @version    0.1.0
+/// @version    0.2.0
 /// @since      0.1.0
 public final class Store extends Operation {
     /// The logger.
@@ -332,7 +333,7 @@ public final class Store extends Operation {
         private String speechesLocation;
 
         /// The default constructor.
-        public Builder() {
+        private Builder() {
             super();
         }
 

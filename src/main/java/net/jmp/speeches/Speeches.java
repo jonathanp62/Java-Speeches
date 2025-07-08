@@ -1,6 +1,7 @@
 package net.jmp.speeches;
 
 /*
+ * (#)Speeches.java 0.2.0   07/08/2025
  * (#)Speeches.java 0.1.0   07/05/2025
  *
  * @author   Jonathan Parker
@@ -45,6 +46,7 @@ import java.util.*;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
+import net.jmp.speeches.create.Create;
 import net.jmp.speeches.store.Store;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
@@ -59,7 +61,7 @@ import org.slf4j.LoggerFactory;
 
 /// The speeches class.
 ///
-/// @version    0.1.0
+/// @version    0.2.0
 /// @since      0.1.0
 final class Speeches {
     /// The logger.
@@ -196,7 +198,14 @@ final class Speeches {
             this.logger.trace(entryWith(pinecone));
         }
 
-        this.logger.info("Creating Pinecone index: {}", this.searchableIndexName);
+        final Create create = Create.builder()
+                .searchableEmbeddingModel(this.searchableEmbeddingModel)
+                .searchableIndexName(this.searchableIndexName)
+                .namespace(this.namespace)
+                .pinecone(pinecone)
+                .build();
+
+        create.operate();
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -257,7 +266,7 @@ final class Speeches {
             this.logger.trace(entryWith(mongoClient));
         }
 
-        final Store store = new Store.Builder()
+        final Store store = Store.builder()
                 .mongoClient(mongoClient)
                 .collectionName(this.mongoDbCollection)
                 .dbName(this.mongoDbName)

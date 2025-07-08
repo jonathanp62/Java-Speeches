@@ -1,6 +1,7 @@
 package net.jmp.speeches.create;
 
 /*
+ * (#)Create.java   0.2.0   07/08/2025
  * (#)Create.java   0.1.0   07/05/2025
  *
  * @author   Jonathan Parker
@@ -28,6 +29,8 @@ package net.jmp.speeches.create;
  * SOFTWARE.
  */
 
+import io.pinecone.clients.Pinecone;
+
 import net.jmp.speeches.Operation;
 
 import static net.jmp.util.logging.LoggerUtils.*;
@@ -37,15 +40,29 @@ import org.slf4j.LoggerFactory;
 
 /// The create Pinecone index class.
 ///
-/// @version    0.1.0
+/// @version    0.2.0
 /// @since      0.1.0
 public final class Create extends Operation {
     /// The logger.
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     /// The constructor.
-    public Create() {
-        super(Operation.operationBuilder());
+    ///
+    /// @param  builder net.jmp.speeches.create.Create.Builder
+    private Create(final Builder builder) {
+        super(Operation.operationBuilder()
+                .searchableIndexName(builder.searchableIndexName)
+                .searchableEmbeddingModel(builder.searchableEmbeddingModel)
+                .namespace(builder.namespace)
+                .pinecone(builder.pinecone)
+        );
+    }
+
+    /// Return the builder.
+    ///
+    /// @return  net.jmp.speeches.create.Create.Builder
+    public static Builder builder() {
+        return new Builder();
     }
 
     /// The operate method.
@@ -55,8 +72,79 @@ public final class Create extends Operation {
             this.logger.trace(entry());
         }
 
+        this.logger.info("Create searchable index: {}", this.searchableIndexName);
+        this.logger.info("Embedding model        : {}", this.searchableEmbeddingModel);
+        this.logger.info("Namespace              : {}", this.namespace);
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
+        }
+    }
+
+    /// The builder class.
+    public static class Builder {
+        /// The Pinecone client.
+        private Pinecone pinecone;
+
+        /// The searchable embedding model.
+        private String searchableEmbeddingModel;
+
+        /// The searchable index name.
+        private String searchableIndexName;
+
+        /// The namespace.
+        private String namespace;
+
+        /// The default constructor.
+        private Builder() {
+            super();
+        }
+
+        /// Set the Pinecone client.
+        ///
+        /// @param  pinecone    io.pinecone.clients.Pinecone
+        /// @return             net.jmp.speeches.create.Create.Builder
+        public Builder pinecone(final Pinecone pinecone) {
+            this.pinecone = pinecone;
+
+            return this;
+        }
+
+        /// Set the searchable embedding model.
+        ///
+        /// @param  searchableEmbeddingModel    java.lang.String
+        /// @return                             net.jmp.speeches.create.Create.Builder
+        public Builder searchableEmbeddingModel(final String searchableEmbeddingModel) {
+            this.searchableEmbeddingModel = searchableEmbeddingModel;
+
+            return this;
+        }
+
+        /// Set the searchable index name.
+        ///
+        /// @param  searchableIndexName java.lang.String
+        /// @return                     net.jmp.speeches.create.Create.Builder
+        public Builder searchableIndexName(final String searchableIndexName) {
+            this.searchableIndexName = searchableIndexName;
+
+            return this;
+        }
+
+        /// Set the namespace.
+        ///
+        /// @param  namespace   java.lang.String
+        /// @return             net.jmp.speeches.create.Create.Builder
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
+
+            return this;
+        }
+
+        /// Build the create object.
+        ///
+        /// @return net.jmp.speeches.create.Create
+        public Create build() {
+            return new Create(this);
         }
     }
 }
