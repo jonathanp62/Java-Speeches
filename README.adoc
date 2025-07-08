@@ -17,7 +17,7 @@ Things I need
 Loading Data
 ~~~~~~~~~~~~
 
-The unstructured text is initially placed in the UnstructeredText class in the text package. When more data is added to it, run the following tasks:
+The speeches are placed in the $HOME/Documents/Speeches directory in subdirectories by author last name. When they need to be (re-)processed, run the following tasks:
 
  - store
  - delete
@@ -52,18 +52,20 @@ System Properties
 |===================================================
 |Property Name               |Value
 |app.chatModel               |gpt-4.1
-|app.mongoDbCollection       |quickstart
-|app.mongoDbName             |pinecone_quickstart
+|app.maxTokens               |512
+|app.mongoDbCollection       |speeches
+|app.mongoDbName             |speeches
 |app.mongoDbUri              |etc/mongo-db-uri.txt
-|app.namespace               |quickstart-namespace
+|app.namespace               |speeches
 |app.openaiApiKey            |etc/open-ai-api-key.txt
 |app.pineconeApiKey          |etc/pinecone-api-key.txt
 |app.rerankingModel          |bge-reranker-v2-m3
 |app.queryText               |Variable by Gradle task
-|app.searchableEmbeddingModel|pinecone-sparse-english-v0
-|app.searchableIndexName     |quickstart-sparse
+|app.searchableEmbeddingModel|multilingual-e5-large
+|app.searchableIndexName     |speeches
+|app.speechesLocation        |/Users/jonathan/Documents/Speeches
 |app.topK                    |10
 |===================================================
 
-Current version: 0.1.0.
+Current version: 0.2.0.
 ~~~~~~~~~~~~~~~~~~~~~~~
