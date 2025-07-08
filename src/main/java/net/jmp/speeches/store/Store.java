@@ -28,9 +28,13 @@ package net.jmp.speeches.store;
  * SOFTWARE.
  */
 
+import com.mongodb.MongoException;
+
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+
+import com.mongodb.client.result.DeleteResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +54,8 @@ import net.jmp.speeches.text.TextAnalyzer;
 import net.jmp.speeches.text.TextAnalyzerResponse;
 
 import static net.jmp.util.logging.LoggerUtils.*;
+
+import org.bson.Document;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -90,6 +96,8 @@ public final class Store extends Operation {
             this.logger.trace(entry());
         }
 
+        this.clearMongoCollection();
+
         this.logger.info("Storing speeches from: {}", this.speechesLocation);
 
         List<File> files = null;
@@ -114,6 +122,30 @@ public final class Store extends Operation {
             } catch (final IOException ioe) {
                 this.logger.error(catching(ioe));
             }
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Clear the collection.
+    private void clearMongoCollection() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
+        final MongoCollection<Document> collection = database.getCollection(this.collectionName);
+
+        /* An empty document as a filter will delete all documents */
+
+        try {
+            final DeleteResult result = collection.deleteMany(new Document());
+
+            this.logger.info("{} document(s) were deleted from {}", result.getDeletedCount(), collection.getNamespace().getCollectionName());
+        } catch (final MongoException me) {
+            this.logger.error(catching(me));
         }
 
         if (this.logger.isTraceEnabled()) {
@@ -204,7 +236,7 @@ public final class Store extends Operation {
         final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
         final MongoCollection<MongoDocument> collection = database.getCollection(this.collectionName, MongoDocument.class);
 
-        this.logger.info("Inserted  : {}", collection.insertOne(document).getInsertedId());
+        this.logger.info("Inserted: {}", collection.insertOne(document).getInsertedId().asObjectId().getValue());
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
