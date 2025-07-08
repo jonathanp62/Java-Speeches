@@ -31,9 +31,17 @@ package net.jmp.speeches.create;
 
 import io.pinecone.clients.Pinecone;
 
+import java.util.Map;
+
 import net.jmp.speeches.Operation;
 
 import static net.jmp.util.logging.LoggerUtils.*;
+
+import org.openapitools.db_control.client.ApiException;
+
+import org.openapitools.db_control.client.model.CreateIndexForModelRequest;
+import org.openapitools.db_control.client.model.CreateIndexForModelRequestEmbed;
+import org.openapitools.db_control.client.model.DeletionProtection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,9 +80,38 @@ public final class Create extends Operation {
             this.logger.trace(entry());
         }
 
-        this.logger.info("Create searchable index: {}", this.searchableIndexName);
-        this.logger.info("Embedding model        : {}", this.searchableEmbeddingModel);
-        this.logger.info("Namespace              : {}", this.namespace);
+        this.logger.info("Searchable index: {}", this.searchableIndexName);
+        this.logger.info("Embedding model : {}", this.searchableEmbeddingModel);
+        this.logger.info("Namespace       : {}", this.namespace);
+
+        if (!this.doesSearchableIndexExist()) {
+            this.logger.info("Creating searchable index: {}", this.searchableIndexName);
+
+            final Map<String, String> fieldMap = Map.of("text", "text_segment");   // The name of the text field from your document model that will be embedded
+            final Map<String, String> tags = Map.of("env", "development");
+
+            final CreateIndexForModelRequestEmbed embed = new CreateIndexForModelRequestEmbed();
+
+            embed.model(this.searchableEmbeddingModel)
+                    .metric(CreateIndexForModelRequestEmbed.MetricEnum.COSINE)
+                    .dimension(1024)
+                    .fieldMap(fieldMap);
+
+            try {
+                this.pinecone.createIndexForModel(
+                        this.searchableIndexName,
+                        CreateIndexForModelRequest.CloudEnum.AWS,
+                        "us-east-1",
+                        embed,
+                        DeletionProtection.DISABLED,
+                        tags
+                );
+            } catch (final ApiException ae) {
+                this.logger.error(catching(ae));
+            }
+        } else {
+            this.logger.info("Searchable index already exists: {}", this.searchableIndexName);
+        }
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
