@@ -110,14 +110,14 @@ public final class TextAnalyzerResponse {
 
     /// Add a new paragraph to the collection.
     ///
-    /// @param  paragraph   net.jmp.pinecone.quickstart.corenlp.TextAnalyzerResponse.Paragraph
+    /// @param  paragraph   net.jmp.speeches.text.TextAnalyzerResponse.Paragraph
     public void addParagraphs(final Paragraph paragraph) {
         this.paragraphs.add(paragraph);
     }
 
     /// Get the paragraphs.
     ///
-    /// @return java.util.List<net.jmp.pinecone.quickstart.corenlp.TextAnalyzerResponse.Paragraph>
+    /// @return java.util.List<net.jmp.speeches.text.TextAnalyzerResponse.Paragraph>
     public List<Paragraph> getParagraphs() {
         return this.paragraphs;
     }
@@ -226,14 +226,14 @@ public final class TextAnalyzerResponse {
 
         /// Add a new sentence to the collection.
         ///
-        /// @param  sentence    net.jmp.pinecone.quickstart.corenlp.TextAnalyzerResponse.Paragraph.Sentence
+        /// @param  sentence    net.jmp.speeches.text.TextAnalyzerResponse.Paragraph.Sentence
         public void addSentences(final Sentence sentence) {
             this.sentences.add(sentence);
         }
 
         /// Get the sentences.
         ///
-        /// @return java.util.List<net.jmp.pinecone.quickstart.corenlp.TextAnalyzerResponse.Paragraph.Sentence>
+        /// @return java.util.List<net.jmp.speeches.text.TextAnalyzerResponse.Paragraph.Sentence>
         public List<Sentence> getSentences() {
             return this.sentences;
         }

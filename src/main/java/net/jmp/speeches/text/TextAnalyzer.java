@@ -62,7 +62,7 @@ public final class TextAnalyzer {
 
     /// The constructor.
     ///
-    /// @param  builder net.jmp.pinecone.quickstart.corenlp.TextAnalyzer.Builder
+    /// @param  builder net.jmp.speeches.text.TextAnalyzer.Builder
     public TextAnalyzer(final Builder builder) {
         super();
 
@@ -83,12 +83,12 @@ public final class TextAnalyzer {
 
     /// Get the builder instance.
     ///
-    /// @return     net.jmp.pinecone.quickstart.corenlp.TextAnalyzer.Builder
+    /// @return     net.jmp.speeches.text.TextAnalyzer.Builder
     public static Builder builder() { return new Builder(); }
 
     /// Analyze the document and return the response.
     ///
-    /// @return     net.jmp.pinecone.quickstart.corenlp.TextAnalyzerResponse
+    /// @return     net.jmp.speeches.text.TextAnalyzerResponse
     public TextAnalyzerResponse analyze() {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entry());
@@ -135,7 +135,7 @@ public final class TextAnalyzer {
 
     /// Handle the sentences in the paragraph.
     ///
-    /// @param  paragraph   net.jmp.pinecone.quickstart.corenlp.TextAnalyzerResponse.Paragraph
+    /// @param  paragraph   net.jmp.speeches.text.TextAnalyzerResponse.Paragraph
     private void handleSentences(final TextAnalyzerResponse.Paragraph paragraph) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(paragraph));
@@ -181,7 +181,7 @@ public final class TextAnalyzer {
         /// Set the document text.
         ///
         /// @param  text    java.lang.String
-        /// @return         net.jmp.pinecone.quickstart.corenlp.TextAnalyzer.Builder
+        /// @return         net.jmp.speeches.text.TextAnalyzer.Builder
         public Builder text(final String text) {
             this.text = text;
 
@@ -191,7 +191,7 @@ public final class TextAnalyzer {
         /// Set the document title.
         ///
         /// @param  title   java.lang.String
-        /// @return         net.jmp.pinecone.quickstart.corenlp.TextAnalyzer.Builder
+        /// @return         net.jmp.speeches.text.TextAnalyzer.Builder
         public Builder title(final String title) {
             this.title = title;
 
@@ -201,7 +201,7 @@ public final class TextAnalyzer {
         /// Set the document author.
         ///
         /// @param  author  java.lang.String
-        /// @return         net.jmp.pinecone.quickstart.corenlp.TextAnalyzer.Builder
+        /// @return         net.jmp.speeches.text.TextAnalyzer.Builder
         public Builder author(final String author) {
             this.author = author;
 
@@ -210,7 +210,7 @@ public final class TextAnalyzer {
 
         /// Build the text analyzer.
         ///
-        /// @return net.jmp.pinecone.quickstart.corenlp.TextAnalyzer
+        /// @return net.jmp.speeches.text.TextAnalyzer
         public TextAnalyzer build() {
             return new TextAnalyzer(this);
         }
