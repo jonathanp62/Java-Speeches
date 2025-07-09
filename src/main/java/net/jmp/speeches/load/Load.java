@@ -36,9 +36,16 @@ import com.mongodb.client.MongoDatabase;
 
 import com.mongodb.client.model.Projections;
 
+import io.pinecone.clients.Index;
 import io.pinecone.clients.Pinecone;
 
+import io.pinecone.proto.ListResponse;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import net.jmp.speeches.Operation;
 
@@ -99,15 +106,17 @@ public final class Load extends Operation {
 
         if (this.doesSearchableIndexExist() && !this.isSearchableIndexLoaded()) {
             this.logger.info("Loading searchable index: {}", this.searchableIndexName);
+
+            final List<MongoDocument> documents = this.getMongoDocuments();
+
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("Documents fetched: {}", documents.size());
+            }
+
+            this.processDocuments(documents);
+        } else {
+            this.logger.info("Searchable index either does not exist or is already loaded: {}", this.searchableIndexName);
         }
-
-        final List<MongoDocument> documents = this.getMongoDocuments();
-
-        if (this.logger.isDebugEnabled()) {
-            this.logger.debug("Documents fetched: {}", documents.size());
-        }
-
-        this.processDocuments(documents);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -133,7 +142,7 @@ public final class Load extends Operation {
 
             totalTextSegments += textSegments.size();
 
-            this.embedDocument(document);
+            this.embedDocument(document, textSegments);
         }
 
         this.logger.info("Total text segments: {}", totalTextSegments);
@@ -146,9 +155,38 @@ public final class Load extends Operation {
     /// Embed the document.
     ///
     /// @param  document    net.jmp.speeches.store.MongoDocument
-    private void embedDocument(final MongoDocument document) {
+    private void embedDocument(final MongoDocument document, final List<String> textSegments) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(document));
+            this.logger.trace(entryWith(document, textSegments));
+        }
+
+        final List<Map<String, String>> upsertRecords = new ArrayList<>();
+        final String mongoId = document.getId();
+        final TextAnalyzerResponse textAnalysis = document.getTextAnalysis();
+        final String author = textAnalysis.getAuthor();
+        final String title = textAnalysis.getTitle();
+
+        for (final String textSegment : textSegments) {
+            final Map<String, String> upsertRecord = new HashMap<>();
+
+            upsertRecord.put("_id", UUID.randomUUID().toString());  // @todo text-segment-nn-UUID
+            upsertRecord.put("text_segment", textSegment);
+            upsertRecord.put("title", title);
+            upsertRecord.put("author", author);
+            upsertRecord.put("mongoid", mongoId);
+
+            upsertRecords.add(upsertRecord);
+        }
+
+        try (final Index index = this.pinecone.getIndexConnection(this.searchableIndexName)) {
+            index.upsertRecords(this.namespace, upsertRecords);
+
+            final ListResponse response = index.list(namespace);
+            final int vectorsCount = response.getVectorsCount();
+
+            this.logger.info("Upserted {} records for {}", vectorsCount, document.getId());
+        } catch (final org.openapitools.db_data.client.ApiException ae) {
+            this.logger.error(catching(ae));
         }
 
         if (this.logger.isTraceEnabled()) {
