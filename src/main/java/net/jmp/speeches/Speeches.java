@@ -1,6 +1,7 @@
 package net.jmp.speeches;
 
 /*
+ * (#)Speeches.java 0.3.0   07/09/2025
  * (#)Speeches.java 0.2.0   07/08/2025
  * (#)Speeches.java 0.1.0   07/05/2025
  *
@@ -62,7 +63,7 @@ import org.slf4j.LoggerFactory;
 
 /// The speeches class.
 ///
-/// @version    0.2.0
+/// @version    0.3.0
 /// @since      0.1.0
 final class Speeches {
     /// The logger.
@@ -245,6 +246,7 @@ final class Speeches {
                 .mongoClient(mongoClient)
                 .collectionName(this.mongoDbCollection)
                 .dbName(this.mongoDbName)
+                .maxTokens(this.maxTokens)
                 .build();
 
         load.operate();

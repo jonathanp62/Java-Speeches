@@ -74,7 +74,7 @@ public final class TextSplitter {
 
         final Properties props = new Properties();    // Set up pipeline properties
 
-        /* Set the list of annotators to run - The order is significant */
+        /* Set the list of annotators to run */
 
         props.setProperty("annotators", "tokenize");
 

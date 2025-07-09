@@ -43,7 +43,10 @@ import java.util.List;
 import net.jmp.speeches.Operation;
 
 import net.jmp.speeches.store.MongoDocument;
+
 import net.jmp.speeches.text.TextAnalyzerResponse;
+import net.jmp.speeches.text.TextSplitter;
+import net.jmp.speeches.text.TextSplitterResponse;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
@@ -72,6 +75,7 @@ public final class Load extends Operation {
                 .mongoClient(builder.mongoClient)
                 .collectionName(builder.collectionName)
                 .dbName(builder.dbName)
+                .maxTokens(builder.maxTokens)
         );
     }
 
@@ -103,9 +107,47 @@ public final class Load extends Operation {
             this.logger.debug("Documents fetched: {}", documents.size());
         }
 
+        int totalTextSegments = 0;
+
+        for (final MongoDocument document : documents) {
+            final List<String> textSegments = this.getTextSegments(document);
+
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("Text segments: {}", textSegments.size());
+            }
+
+            totalTextSegments += textSegments.size();
+        }
+
+        this.logger.info("Total text segments: {}", totalTextSegments);
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
+    }
+
+    /// Get the text segments.
+    ///
+    /// @param  document    net.jmp.speeches.store.MongoDocument
+    /// @return             java.util.List<java.lang.String>
+    private List<String> getTextSegments(final MongoDocument document) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(document));
+        }
+
+        final TextSplitterResponse textSplitterResponse = TextSplitter.builder()
+                .document(document.getTextAnalysis().getText())
+                .maxTokens(this.maxTokens)
+                .build()
+                .split();
+
+        final List<String> textSegments = textSplitterResponse.getTextSegments();
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(textSegments));
+        }
+
+        return textSegments;
     }
 
     /// Get the Mongo documents.
@@ -175,6 +217,9 @@ public final class Load extends Operation {
 
         /// The database name.
         private String dbName;
+
+        /// The max tokens.
+        private int maxTokens;
 
         /// The default constructor.
         private Builder() {
@@ -247,6 +292,16 @@ public final class Load extends Operation {
         /// @return        net.jmp.speeches.load.Load.Builder
         public Builder dbName(final String dbName) {
             this.dbName = dbName;
+
+            return this;
+        }
+
+        /// Set the number of maximum tokens.
+        ///
+        /// @param  maxTokens   int
+        /// @return         net.jmp.speeches.load.Load.Builder
+        public Builder maxTokens(final int maxTokens) {
+            this.maxTokens = maxTokens;
 
             return this;
         }
