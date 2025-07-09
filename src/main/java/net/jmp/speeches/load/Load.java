@@ -30,12 +30,24 @@ package net.jmp.speeches.load;
  */
 
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+
+import com.mongodb.client.model.Projections;
 
 import io.pinecone.clients.Pinecone;
 
+import java.util.List;
+
 import net.jmp.speeches.Operation;
 
+import net.jmp.speeches.store.MongoDocument;
+import net.jmp.speeches.text.TextAnalyzerResponse;
+
 import static net.jmp.util.logging.LoggerUtils.*;
+
+import org.bson.conversions.Bson;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,9 +97,60 @@ public final class Load extends Operation {
             this.logger.info("Loading searchable index: {}", this.searchableIndexName);
         }
 
+        final List<MongoDocument> documents = this.getMongoDocuments();
+
+        if (this.logger.isDebugEnabled()) {
+            this.logger.debug("Documents fetched: {}", documents.size());
+        }
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
+    }
+
+    /// Get the Mongo documents.
+    ///
+    /// @return  java.util.List<net.jmp.speeches.store.MongoDocument>
+    private List<MongoDocument> getMongoDocuments() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final List<MongoDocument> documents = new java.util.ArrayList<>();
+
+        final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
+        final MongoCollection<MongoDocument> collection = database.getCollection(this.collectionName, MongoDocument.class);
+
+        final Bson projectionFields = Projections.fields(
+                Projections.include("textAnalysis")
+        );
+
+        try (final MongoCursor<MongoDocument> cursor = collection
+                .find()
+                .projection(projectionFields)
+                .iterator()) {
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("There are {} documents available", cursor.available());
+            }
+
+            while (cursor.hasNext()) {
+                final MongoDocument document = cursor.next();
+                final TextAnalyzerResponse textAnalysis = document.getTextAnalysis();
+
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug("Title : {}", textAnalysis.getTitle());
+                    this.logger.debug("Author: {}", textAnalysis.getAuthor());
+                }
+
+                documents.add(document);
+            }
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(documents));
+        }
+
+        return documents;
     }
 
     /// The builder class.
