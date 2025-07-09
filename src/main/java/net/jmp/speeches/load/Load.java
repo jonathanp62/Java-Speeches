@@ -107,10 +107,25 @@ public final class Load extends Operation {
             this.logger.debug("Documents fetched: {}", documents.size());
         }
 
+        this.processDocuments(documents);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Process the documents.
+    ///
+    /// @param  documents   java.util.List<net.jmp.speeches.store.MongoDocument>
+    private void processDocuments(final List<MongoDocument> documents) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
         int totalTextSegments = 0;
 
         for (final MongoDocument document : documents) {
-            final List<String> textSegments = this.getTextSegments(document);
+            final List<String> textSegments = this.getTextSegments(document.getTextAnalysis().getText());
 
             if (this.logger.isDebugEnabled()) {
                 this.logger.debug("Text segments: {}", textSegments.size());
@@ -128,15 +143,15 @@ public final class Load extends Operation {
 
     /// Get the text segments.
     ///
-    /// @param  document    net.jmp.speeches.store.MongoDocument
-    /// @return             java.util.List<java.lang.String>
-    private List<String> getTextSegments(final MongoDocument document) {
+    /// @param  documentText    java.lang.String
+    /// @return                 java.util.List<java.lang.String>
+    private List<String> getTextSegments(final String documentText) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(document));
+            this.logger.trace(entryWith(documentText));
         }
 
         final TextSplitterResponse textSplitterResponse = TextSplitter.builder()
-                .document(document.getTextAnalysis().getText())
+                .document(documentText)
                 .maxTokens(this.maxTokens)
                 .build()
                 .split();
