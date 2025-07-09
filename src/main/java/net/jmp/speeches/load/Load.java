@@ -154,7 +154,8 @@ public final class Load extends Operation {
 
     /// Embed the document.
     ///
-    /// @param  document    net.jmp.speeches.store.MongoDocument
+    /// @param  document        net.jmp.speeches.store.MongoDocument
+    /// @param  textSegments    java.util.List<java.lang.String>
     private void embedDocument(final MongoDocument document, final List<String> textSegments) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(document, textSegments));
