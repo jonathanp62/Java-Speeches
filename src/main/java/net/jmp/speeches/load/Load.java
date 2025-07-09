@@ -132,9 +132,24 @@ public final class Load extends Operation {
             }
 
             totalTextSegments += textSegments.size();
+
+            this.embedDocument(document);
         }
 
         this.logger.info("Total text segments: {}", totalTextSegments);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Embed the document.
+    ///
+    /// @param  document    net.jmp.speeches.store.MongoDocument
+    private void embedDocument(final MongoDocument document) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(document));
+        }
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -195,6 +210,7 @@ public final class Load extends Operation {
                 final TextAnalyzerResponse textAnalysis = document.getTextAnalysis();
 
                 if (this.logger.isDebugEnabled()) {
+                    this.logger.debug("ID    : {}", document.getId());
                     this.logger.debug("Title : {}", textAnalysis.getTitle());
                     this.logger.debug("Author: {}", textAnalysis.getAuthor());
                 }

@@ -1,6 +1,7 @@
 package net.jmp.speeches.store;
 
 /*
+ * (#)MongoDocument.java    0.3.0   07/09/2025
  * (#)MongoDocument.java    0.1.0   07/07/2025
  *
  * @author   Jonathan Parker
@@ -30,11 +31,24 @@ package net.jmp.speeches.store;
 
 import net.jmp.speeches.text.TextAnalyzerResponse;
 
+import org.bson.BsonType;
+
+import org.bson.codecs.pojo.annotations.BsonCreator;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.codecs.pojo.annotations.BsonRepresentation;
+
+import org.bson.types.ObjectId;
+
 /// The MongoDB document class.
 ///
-/// @version    0.1.0
+/// @version    0.3.0
 /// @since      0.1.0
 public class MongoDocument {
+    /// The MongoDB document identifier.
+    @BsonId
+    @BsonRepresentation(BsonType.OBJECT_ID)
+    private String id;
+
     /// The file name.
     private String fileName;
 
@@ -54,8 +68,23 @@ public class MongoDocument {
     private TextAnalyzerResponse textAnalysis;
 
     /// The default constructor.
+    @BsonCreator
     public MongoDocument() {
         super();
+    }
+
+    /// Get the document identifier.
+    ///
+    /// @return java.lang.String
+    public String getId() {
+        return this.id;
+    }
+
+    /// Set the document identifier.
+    ///
+    /// @param  id  java.lang.String
+    public void setId(final String id) {
+        this.id = id;
     }
 
     /// Get the file name.
