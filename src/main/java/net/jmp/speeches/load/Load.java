@@ -60,6 +60,8 @@ import static net.jmp.util.logging.LoggerUtils.*;
 
 import org.bson.conversions.Bson;
 
+import org.openapitools.db_data.client.ApiException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -188,8 +190,8 @@ public final class Load extends Operation {
             this.waitUntilUpsertIsComplete(index, vectorCountExpected);
             this.logger.info("Upserted {} records for {}", upsertRecords.size(), speechDocument.getId());
             this.insertVectorDocument(speechDocument, upsertRecords);
-        } catch (final org.openapitools.db_data.client.ApiException ae) {
-            this.logger.error(catching(ae));
+        } catch (final ApiException | LoadException e) {
+            this.logger.error(catching(e));
         }
 
         if (this.logger.isTraceEnabled()) {
@@ -203,7 +205,8 @@ public final class Load extends Operation {
     ///
     /// @param  index               io.pinecone.clients.Index
     /// @param  vectorCountExpected int
-    private void waitUntilUpsertIsComplete(final Index index, final int vectorCountExpected) {
+    /// @throws                     net.jmp.speeches.load.LoadException When a timeout occurs waiting for the upsert to complete
+    private void waitUntilUpsertIsComplete(final Index index, final int vectorCountExpected) throws LoadException {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(index, vectorCountExpected));
         }
@@ -224,7 +227,7 @@ public final class Load extends Operation {
         }
 
         if (count >= 60) {
-            throw new RuntimeException("Timed out waiting to finish upserting vectors");
+            throw new LoadException("Timed out waiting for the upsert of the vectors to complete");
         }
 
         if (this.logger.isTraceEnabled()) {
