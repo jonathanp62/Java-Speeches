@@ -37,7 +37,7 @@ import org.bson.codecs.pojo.annotations.BsonCreator;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonRepresentation;
 
-/// The MongoDB document class.
+/// The MongoDB speech document class.
 ///
 /// @version    0.3.0
 /// @since      0.1.0
