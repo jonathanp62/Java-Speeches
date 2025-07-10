@@ -1,6 +1,7 @@
 package net.jmp.speeches;
 
 /*
+ * (#)Main.java 0.3.0   07/10/2025
  * (#)Main.java 0.1.0   07/05/2025
  *
  * @author   Jonathan Parker
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 /// The main application class.
 ///
-/// @version    0.1.0
+/// @version    0.3.0
 /// @since      0.1.0
 public final class Main implements Runnable {
     /// The logger.
@@ -70,7 +71,8 @@ public final class Main implements Runnable {
 
         final String chatModel = System.getProperty("app.chatModel");
         final String maxTokens = System.getProperty("app.maxTokens");
-        final String mongoDbCollection = System.getProperty("app.mongoDbCollection");
+        final String mongoDbCollectionSpeeches = System.getProperty("app.mongoDbCollectionSpeeches");
+        final String mongoDbCollectionVectors = System.getProperty("app.mongoDbCollectionVectors");
         final String mongoDbName = System.getProperty("app.mongoDbName");
         final String mongoDbUriFile = System.getProperty("app.mongoDbUri");
         final String namespace = System.getProperty("app.namespace");
@@ -81,25 +83,27 @@ public final class Main implements Runnable {
         final String speechesLocation = System.getProperty("app.speechesLocation");
         final String topK = System.getProperty("app.topK");
 
-        this.logger.info("Operation                 : {}", operation);
-        this.logger.info("Chat Model                : {}", chatModel);
-        this.logger.info("Maximum Tokens            : {}", maxTokens);
-        this.logger.info("MongoDB Collection        : {}", mongoDbCollection);
-        this.logger.info("MongoDB Name              : {}", mongoDbName);
-        this.logger.info("MongoDB URI File          : {}", mongoDbUriFile);
-        this.logger.info("Namespace                 : {}", namespace);
-        this.logger.info("Reranking Model           : {}", rerankingModel);
-        this.logger.info("Query Text                : {}", queryText);
-        this.logger.info("Searchable Embedding Model: {}", searchableEmbeddingModel);
-        this.logger.info("Searchable Index Name     : {}", searchableIndexName);
-        this.logger.info("Speeches Location         : {}", speechesLocation);
-        this.logger.info("TopK                      : {}", topK);
+        this.logger.info("Operation                    : {}", operation);
+        this.logger.info("Chat Model                   : {}", chatModel);
+        this.logger.info("Maximum Tokens               : {}", maxTokens);
+        this.logger.info("MongoDB Collection (Speeches): {}", mongoDbCollectionSpeeches);
+        this.logger.info("MongoDB Collection (Vectors) : {}", mongoDbCollectionVectors);
+        this.logger.info("MongoDB Name                 : {}", mongoDbName);
+        this.logger.info("MongoDB URI File             : {}", mongoDbUriFile);
+        this.logger.info("Namespace                    : {}", namespace);
+        this.logger.info("Reranking Model              : {}", rerankingModel);
+        this.logger.info("Query Text                   : {}", queryText);
+        this.logger.info("Searchable Embedding Model   : {}", searchableEmbeddingModel);
+        this.logger.info("Searchable Index Name        : {}", searchableIndexName);
+        this.logger.info("Speeches Location            : {}", speechesLocation);
+        this.logger.info("TopK                         : {}", topK);
 
         final Speeches speeches = Speeches.builder()
                 .chatModel(chatModel)
                 .searchableEmbeddingModel(searchableEmbeddingModel)
                 .searchableIndexName(searchableIndexName)
-                .mongoDbCollection(mongoDbCollection)
+                .mongoDbCollectionSpeeches(mongoDbCollectionSpeeches)
+                .mongoDbCollectionVectors(mongoDbCollectionVectors)
                 .mongoDbName(mongoDbName)
                 .mongoDbUriFile(mongoDbUriFile)
                 .namespace(namespace)

@@ -50,7 +50,8 @@ ext {
 	chatModel = 'gpt-4.1'
 	javaMainClass = 'net.jmp.speeches.Main'
 	maxTokens = 512
-	mongoDbCollection = 'speeches'
+	mongoDbCollectionSpeeches = 'speeches'
+	mongoDbCollectionVectors = 'vectors'
 	mongoDbName = 'speeches'
 	mongoDbUri = 'etc/mongo-db-uri.txt'
 	namespace = 'speeches'
@@ -123,7 +124,8 @@ tasks.withType(JavaExec).configureEach {
 			[
  			 'app.chatModel': chatModel,
  			 'app.maxTokens': maxTokens,
-			 'app.mongoDbCollection': mongoDbCollection,
+			 'app.mongoDbCollectionSpeeches': mongoDbCollectionSpeeches,
+			 'app.mongoDbCollectionVectors': mongoDbCollectionVectors,
 			 'app.mongoDbName': mongoDbName,
 			 'app.mongoDbUri': mongoDbUri,
 			 'app.namespace': namespace,

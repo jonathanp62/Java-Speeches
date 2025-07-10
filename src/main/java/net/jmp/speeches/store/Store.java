@@ -78,7 +78,7 @@ public final class Store extends Operation {
     public Store(final Builder builder) {
         super(Operation.operationBuilder()
                 .dbName(builder.dbName)
-                .collectionName(builder.collectionName)
+                .speechesCollectionName(builder.speechesCollectionName)
                 .mongoClient(builder.mongoClient)
                 .speechesLocation(builder.speechesLocation)
         );
@@ -138,7 +138,7 @@ public final class Store extends Operation {
         }
 
         final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
-        final MongoCollection<Document> collection = database.getCollection(this.collectionName);
+        final MongoCollection<Document> collection = database.getCollection(this.speechesCollectionName);
 
         /* An empty document as a filter will delete all documents */
 
@@ -236,7 +236,7 @@ public final class Store extends Operation {
         speechDocument.setTextAnalysis(textAnalysisResponse);
 
         final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
-        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.collectionName, MongoSpeechDocument.class);
+        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.speechesCollectionName, MongoSpeechDocument.class);
 
         this.logger.info("Inserted: {}", collection.insertOne(speechDocument).getInsertedId().asObjectId().getValue());
 
@@ -324,8 +324,8 @@ public final class Store extends Operation {
         /// The mongo client.
         private MongoClient mongoClient;
 
-        /// The collection name.
-        private String collectionName;
+        /// The speeches collection name.
+        private String speechesCollectionName;
 
         /// The database name.
         private String dbName;
@@ -348,12 +348,12 @@ public final class Store extends Operation {
             return this;
         }
 
-        /// Set the collection name.
+        /// Set the speeches collection name.
         ///
-        /// @param  collectionName java.lang.String
-        /// @return                net.jmp.pinecone.speeches.store.Store.Builder
-        public Builder collectionName(final String collectionName) {
-            this.collectionName = collectionName;
+        /// @param  speechesCollectionName  java.lang.String
+        /// @return                         net.jmp.pinecone.speeches.store.Store.Builder
+        public Builder speechesCollectionName(final String speechesCollectionName) {
+            this.speechesCollectionName = speechesCollectionName;
 
             return this;
         }

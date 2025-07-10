@@ -80,7 +80,8 @@ public final class Load extends Operation {
                 .searchableIndexName(builder.searchableIndexName)
                 .namespace(builder.namespace)
                 .mongoClient(builder.mongoClient)
-                .collectionName(builder.collectionName)
+                .speechesCollectionName(builder.speechesCollectionName)
+                .vectorsCollectionName(builder.vectorsCollectionName)
                 .dbName(builder.dbName)
                 .maxTokens(builder.maxTokens)
         );
@@ -170,7 +171,7 @@ public final class Load extends Operation {
         for (final String textSegment : textSegments) {
             final Map<String, String> upsertRecord = new HashMap<>();
 
-            upsertRecord.put("_id", UUID.randomUUID().toString());  // @todo text-segment-nn-UUID
+            upsertRecord.put("_id", UUID.randomUUID().toString());
             upsertRecord.put("text_segment", textSegment);
             upsertRecord.put("title", title);
             upsertRecord.put("author", author);
@@ -186,6 +187,16 @@ public final class Load extends Operation {
             final int vectorsCount = response.getVectorsCount();
 
             this.logger.info("Upserted {} records for {}", vectorsCount, speechDocument.getId());
+
+            /*
+             * Create a new MongoVectorDocument instance
+             * Set the speech ID
+             * Set the title
+             * Set the author
+             * Set the vector IDs response.getVectorsList() -> List<ListItem>
+             * For each vector ID add it to the vectorIds list
+             * Save the MongoVectorDocument into the vectors collection
+             */
         } catch (final org.openapitools.db_data.client.ApiException ae) {
             this.logger.error(catching(ae));
         }
@@ -230,7 +241,7 @@ public final class Load extends Operation {
         final List<MongoSpeechDocument> speechDocuments = new java.util.ArrayList<>();
 
         final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
-        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.collectionName, MongoSpeechDocument.class);
+        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.speechesCollectionName, MongoSpeechDocument.class);
 
         final Bson projectionFields = Projections.fields(
                 Projections.include("textAnalysis")
@@ -282,8 +293,11 @@ public final class Load extends Operation {
         /// The mongo client.
         private MongoClient mongoClient;
 
-        /// The collection name.
-        private String collectionName;
+        /// The speeches collection name.
+        private String speechesCollectionName;
+
+        /// The vectors collection name.
+        private String vectorsCollectionName;
 
         /// The database name.
         private String dbName;
@@ -346,12 +360,22 @@ public final class Load extends Operation {
             return this;
         }
 
-        /// Set the collection name.
+        /// Set the speeches collection name.
         ///
-        /// @param  collectionName java.lang.String
-        /// @return                net.jmp.speeches.load.Load.Builder
-        public Builder collectionName(final String collectionName) {
-            this.collectionName = collectionName;
+        /// @param  speechesCollectionName  java.lang.String
+        /// @return                         net.jmp.speeches.load.Load.Builder
+        public Builder speechesCollectionName(final String speechesCollectionName) {
+            this.speechesCollectionName = speechesCollectionName;
+
+            return this;
+        }
+
+        /// Set the vectors collection name.
+        ///
+        /// @param  vectorsCollectionName   java.lang.String
+        /// @return                         net.jmp.speeches.load.Load.Builder
+        public Builder vectorsCollectionName(final String vectorsCollectionName) {
+            this.vectorsCollectionName = vectorsCollectionName;
 
             return this;
         }

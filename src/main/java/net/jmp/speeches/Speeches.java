@@ -79,8 +79,11 @@ final class Speeches {
     /// The searchable index name.
     private final String searchableIndexName;
 
-    /// The MongoDB collection.
-    private final String mongoDbCollection;
+    /// The MongoDB speeches collection.
+    private final String mongoDbCollectionSpeeches;
+
+    /// The MongoDB vectors collection.
+    private final String mongoDbCollectionVectors;
 
     /// The MongoDB name.
     private final String mongoDbName;
@@ -118,7 +121,8 @@ final class Speeches {
         this.chatModel = builder.chatModel;
         this.searchableEmbeddingModel = builder.searchableEmbeddingModel;
         this.searchableIndexName = builder.searchableIndexName;
-        this.mongoDbCollection = builder.mongoDbCollection;
+        this.mongoDbCollectionSpeeches = builder.mongoDbCollectionSpeeches;
+        this.mongoDbCollectionVectors = builder.mongoDbCollectionVectors;
         this.mongoDbName = builder.mongoDbName;
         this.mongoDbUriFile = builder.mongoDbUriFile;
         this.namespace = builder.namespace;
@@ -249,7 +253,8 @@ final class Speeches {
                 .namespace(this.namespace)
                 .pinecone(pinecone)
                 .mongoClient(mongoClient)
-                .collectionName(this.mongoDbCollection)
+                .speechesCollectionName(this.mongoDbCollectionSpeeches)
+                .vectorsCollectionName(this.mongoDbCollectionVectors)
                 .dbName(this.mongoDbName)
                 .maxTokens(this.maxTokens)
                 .build();
@@ -286,7 +291,7 @@ final class Speeches {
 
         final Store store = Store.builder()
                 .mongoClient(mongoClient)
-                .collectionName(this.mongoDbCollection)
+                .speechesCollectionName(this.mongoDbCollectionSpeeches)
                 .dbName(this.mongoDbName)
                 .speechesLocation(this.speechesLocation)
                 .build();
@@ -404,8 +409,11 @@ final class Speeches {
         /// The searchable index name.
         private String searchableIndexName;
 
-        /// The MongoDb collection.
-        private String mongoDbCollection;
+        /// The MongoDb speeches collection.
+        private String mongoDbCollectionSpeeches;
+
+        /// The MongoDb vectors collection.
+        private String mongoDbCollectionVectors;
 
         /// The MongoDb name.
         private String mongoDbName;
@@ -466,12 +474,22 @@ final class Speeches {
             return this;
         }
         
-        /// Set the MongoDb collection.
+        /// Set the MongoDb speeches collection.
         ///
-        /// @param  mongoDbCollection   java.lang.String
-        /// @return                     net.jmp.speeches.Speeches.Builder
-        public Builder mongoDbCollection(final String mongoDbCollection) {
-            this.mongoDbCollection = mongoDbCollection;
+        /// @param  mongoDbCollectionSpeeches   java.lang.String
+        /// @return                             net.jmp.speeches.Speeches.Builder
+        public Builder mongoDbCollectionSpeeches(final String mongoDbCollectionSpeeches) {
+            this.mongoDbCollectionSpeeches = mongoDbCollectionSpeeches;
+
+            return this;
+        }
+
+        /// Set the MongoDb vectors collection.
+        ///
+        /// @param  mongoDbCollectionVectors    java.lang.String
+        /// @return                             net.jmp.speeches.Speeches.Builder
+        public Builder mongoDbCollectionVectors(final String mongoDbCollectionVectors) {
+            this.mongoDbCollectionVectors = mongoDbCollectionVectors;
 
             return this;
         }

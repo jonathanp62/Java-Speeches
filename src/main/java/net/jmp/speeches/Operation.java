@@ -1,6 +1,7 @@
 package net.jmp.speeches;
 
 /*
+ * (#)Operation.java    0.3.0   07/10/2025
  * (#)Operation.java    0.1.0   07/05/2025
  *
  * @author   Jonathan Parker
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
 ///
 /// The abstract operation class.
 ///
-/// @version    0.1.0
+/// @version    0.3.0
 /// @since      0.1.0
 public abstract class Operation {
     /// The logger.
@@ -81,8 +82,11 @@ public abstract class Operation {
     /// The MongoDB client.
     protected final MongoClient mongoClient;
 
-    /// The MongoDB collection name.
-    protected final String collectionName;
+    /// The MongoDB speeches collection name.
+    protected final String speechesCollectionName;
+
+    /// The MongoDB vectors collection name.
+    protected final String vectorsCollectionName;
 
     /// The MongoDB database name.
     protected final String dbName;
@@ -111,7 +115,8 @@ public abstract class Operation {
         this.queryText = operationBuilder.queryText;
         this.openAiApiKey = operationBuilder.openAiApiKey;
         this.mongoClient = operationBuilder.mongoClient;
-        this.collectionName = operationBuilder.collectionName;
+        this.speechesCollectionName = operationBuilder.speechesCollectionName;
+        this.vectorsCollectionName = operationBuilder.vectorsCollectionName;
         this.dbName = operationBuilder.dbName;
         this.speechesLocation = operationBuilder.speechesLocation;
         this.topK = operationBuilder.topK;
@@ -255,8 +260,11 @@ public abstract class Operation {
         /// The MongoDB client.
         private MongoClient mongoClient;
 
-        /// The MongoDB collection name.
-        private String collectionName;
+        /// The MongoDB speeches collection name.
+        private String speechesCollectionName;
+
+        /// The MongoDB vectors collection name.
+        private String vectorsCollectionName;
 
         /// The MongoDB database name.
         private String dbName;
@@ -365,12 +373,22 @@ public abstract class Operation {
             return this;
         }
 
-        /// Set the MongoDB collection name.
+        /// Set the MongoDB speeches collection name.
         ///
-        /// @param  collectionName java.lang.String
-        /// @return                net.jmp.speeches.Operation.OperationBuilder
-        public OperationBuilder collectionName(final String collectionName) {
-            this.collectionName = collectionName;
+        /// @param  speechesCollectionName  java.lang.String
+        /// @return                         net.jmp.speeches.Operation.OperationBuilder
+        public OperationBuilder speechesCollectionName(final String speechesCollectionName) {
+            this.speechesCollectionName = speechesCollectionName;
+
+            return this;
+        }
+
+        /// Set the MongoDB vectors collection name.
+        ///
+        /// @param  vectorsCollectionName   java.lang.String
+        /// @return                         net.jmp.speeches.Operation.OperationBuilder
+        public OperationBuilder vectorsCollectionName(final String vectorsCollectionName) {
+            this.vectorsCollectionName = vectorsCollectionName;
 
             return this;
         }
