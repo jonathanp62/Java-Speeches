@@ -238,7 +238,7 @@ public final class Store extends Operation {
         final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
         final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.speechesCollectionName, MongoSpeechDocument.class);
 
-        this.logger.info("Inserted: {}", collection.insertOne(speechDocument).getInsertedId().asObjectId().getValue());
+        this.logger.info("Inserted speech document: {}", collection.insertOne(speechDocument).getInsertedId().asObjectId().getValue());
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());

@@ -39,7 +39,8 @@ import com.mongodb.client.model.Projections;
 import io.pinecone.clients.Index;
 import io.pinecone.clients.Pinecone;
 
-import io.pinecone.proto.ListResponse;
+import io.pinecone.proto.DescribeIndexStatsResponse;
+import io.pinecone.proto.NamespaceSummary;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -181,25 +182,106 @@ public final class Load extends Operation {
         }
 
         try (final Index index = this.pinecone.getIndexConnection(this.searchableIndexName)) {
+            final int vectorCountExpected = this.getVectorCount(index) + upsertRecords.size();
+
             index.upsertRecords(this.namespace, upsertRecords);
-
-            final ListResponse response = index.list(namespace);
-            final int vectorsCount = response.getVectorsCount();
-
-            this.logger.info("Upserted {} records for {}", vectorsCount, speechDocument.getId());
-
-            /*
-             * Create a new MongoVectorDocument instance
-             * Set the speech ID
-             * Set the title
-             * Set the author
-             * Set the vector IDs response.getVectorsList() -> List<ListItem>
-             * For each vector ID add it to the vectorIds list
-             * Save the MongoVectorDocument into the vectors collection
-             */
+            this.waitUntilUpsertIsComplete(index, vectorCountExpected);
+            this.logger.info("Upserted {} records for {}", upsertRecords.size(), speechDocument.getId());
+            this.insertVectorDocument(speechDocument, upsertRecords);
         } catch (final org.openapitools.db_data.client.ApiException ae) {
             this.logger.error(catching(ae));
         }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Wait until the upsert is complete. The
+    /// number of vectors after the upsert is
+    /// returned.
+    ///
+    /// @param  index               io.pinecone.clients.Index
+    /// @param  vectorCountExpected int
+    private void waitUntilUpsertIsComplete(final Index index, final int vectorCountExpected) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(index, vectorCountExpected));
+        }
+
+        int vectorCountCurrent = this.getVectorCount(index);
+        int count = 0;
+
+        while (vectorCountCurrent < vectorCountExpected && count < 60) {
+            try {
+                Thread.sleep(1_000);
+
+                vectorCountCurrent = this.getVectorCount(index);
+                ++count;
+            } catch (final InterruptedException ie) {
+                this.logger.error(catching(ie));
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        if (count >= 60) {
+            throw new RuntimeException("Timed out waiting to finish upserting vectors");
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Get the vector count from the index
+    /// by describing the index statistics.
+    ///
+    /// @param  index   io.pinecone.clients.Index
+    /// @return         int
+    private int getVectorCount(final Index index) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(index));
+        }
+
+        int result = 0;
+
+        final DescribeIndexStatsResponse indexStatsResponse = index.describeIndexStats();
+        final Map<String, NamespaceSummary> namespaces = indexStatsResponse.getNamespacesMap();
+        final NamespaceSummary namespaceSummary = namespaces.get(this.namespace);
+
+        if (namespaceSummary != null) {
+            result = namespaceSummary.getVectorCount();
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(result));
+        }
+
+        return result;
+    }
+
+    /// Insert a new vector document into MongoDb.
+    ///
+    /// @param  speechDocument  net.jmp.speeches.store.MongoSpeechDocument
+    /// @param  upsertRecords   java.util.List<java.util.Map<java.lang.String, java.lang.String>>
+    private void insertVectorDocument(final MongoSpeechDocument speechDocument, final List<Map<String, String>> upsertRecords) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(speechDocument, upsertRecords));
+        }
+
+        final MongoVectorDocument vectorDocument = new MongoVectorDocument();
+
+        vectorDocument.setSpeechId(speechDocument.getId());
+        vectorDocument.setTitle(speechDocument.getTextAnalysis().getTitle());
+        vectorDocument.setAuthor(speechDocument.getTextAnalysis().getAuthor());
+
+        for (final Map<String, String> upsertRecord : upsertRecords) {
+            vectorDocument.addVectorId(upsertRecord.get("_id"));
+        }
+
+        final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
+        final MongoCollection<MongoVectorDocument> collection = database.getCollection(this.vectorsCollectionName, MongoVectorDocument.class);
+
+        this.logger.info("Inserted vector document: {}", collection.insertOne(vectorDocument).getInsertedId().asObjectId().getValue());
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
