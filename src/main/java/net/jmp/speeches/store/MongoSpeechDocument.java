@@ -1,8 +1,8 @@
 package net.jmp.speeches.store;
 
 /*
- * (#)MongoDocument.java    0.3.0   07/09/2025
- * (#)MongoDocument.java    0.1.0   07/07/2025
+ * (#)MongoSpeechDocument.java  0.3.0   07/09/2025
+ * (#)MongoSpeechDocument.java  0.1.0   07/07/2025
  *
  * @author   Jonathan Parker
  *
@@ -37,13 +37,11 @@ import org.bson.codecs.pojo.annotations.BsonCreator;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.codecs.pojo.annotations.BsonRepresentation;
 
-import org.bson.types.ObjectId;
-
 /// The MongoDB document class.
 ///
 /// @version    0.3.0
 /// @since      0.1.0
-public class MongoDocument {
+public class MongoSpeechDocument {
     /// The MongoDB document identifier.
     @BsonId
     @BsonRepresentation(BsonType.OBJECT_ID)
@@ -69,7 +67,7 @@ public class MongoDocument {
 
     /// The default constructor.
     @BsonCreator
-    public MongoDocument() {
+    public MongoSpeechDocument() {
         super();
     }
 

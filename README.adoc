@@ -10,8 +10,9 @@ Things I need
 * A Pinecone API key
 * A MongoDB account
 * A MongoDB URI
-* A MongoDB collection
+* Two MongoDB collectionx
 ** Speeches
+** Vectors
 * An OpenAI API key
 
 Loading Data

@@ -49,7 +49,7 @@ import java.util.UUID;
 
 import net.jmp.speeches.Operation;
 
-import net.jmp.speeches.store.MongoDocument;
+import net.jmp.speeches.store.MongoSpeechDocument;
 
 import net.jmp.speeches.text.TextAnalyzerResponse;
 import net.jmp.speeches.text.TextSplitter;
@@ -107,13 +107,13 @@ public final class Load extends Operation {
         if (this.doesSearchableIndexExist() && !this.isSearchableIndexLoaded()) {
             this.logger.info("Loading searchable index: {}", this.searchableIndexName);
 
-            final List<MongoDocument> documents = this.getMongoDocuments();
+            final List<MongoSpeechDocument> speechDocuments = this.getSpeechDocuments();
 
             if (this.logger.isDebugEnabled()) {
-                this.logger.debug("Documents fetched: {}", documents.size());
+                this.logger.debug("Documents fetched: {}", speechDocuments.size());
             }
 
-            this.processDocuments(documents);
+            this.processDocuments(speechDocuments);
         } else {
             this.logger.info("Searchable index either does not exist or is already loaded: {}", this.searchableIndexName);
         }
@@ -123,17 +123,17 @@ public final class Load extends Operation {
         }
     }
 
-    /// Process the documents.
+    /// Process the speech documents.
     ///
-    /// @param  documents   java.util.List<net.jmp.speeches.store.MongoDocument>
-    private void processDocuments(final List<MongoDocument> documents) {
+    /// @param  speechDocuments   java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    private void processDocuments(final List<MongoSpeechDocument> speechDocuments) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entry());
+            this.logger.trace(entryWith(speechDocuments));
         }
 
         int totalTextSegments = 0;
 
-        for (final MongoDocument document : documents) {
+        for (final MongoSpeechDocument document : speechDocuments) {
             final List<String> textSegments = this.getTextSegments(document.getTextAnalysis().getText());
 
             if (this.logger.isDebugEnabled()) {
@@ -152,18 +152,18 @@ public final class Load extends Operation {
         }
     }
 
-    /// Embed the document.
+    /// Embed the speech document.
     ///
-    /// @param  document        net.jmp.speeches.store.MongoDocument
+    /// @param  speechDocument  net.jmp.speeches.store.MongoSpeechDocument
     /// @param  textSegments    java.util.List<java.lang.String>
-    private void embedDocument(final MongoDocument document, final List<String> textSegments) {
+    private void embedDocument(final MongoSpeechDocument speechDocument, final List<String> textSegments) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(document, textSegments));
+            this.logger.trace(entryWith(speechDocument, textSegments));
         }
 
         final List<Map<String, String>> upsertRecords = new ArrayList<>();
-        final String mongoId = document.getId();
-        final TextAnalyzerResponse textAnalysis = document.getTextAnalysis();
+        final String mongoId = speechDocument.getId();
+        final TextAnalyzerResponse textAnalysis = speechDocument.getTextAnalysis();
         final String author = textAnalysis.getAuthor();
         final String title = textAnalysis.getTitle();
 
@@ -185,7 +185,7 @@ public final class Load extends Operation {
             final ListResponse response = index.list(namespace);
             final int vectorsCount = response.getVectorsCount();
 
-            this.logger.info("Upserted {} records for {}", vectorsCount, document.getId());
+            this.logger.info("Upserted {} records for {}", vectorsCount, speechDocument.getId());
         } catch (final org.openapitools.db_data.client.ApiException ae) {
             this.logger.error(catching(ae));
         }
@@ -219,24 +219,24 @@ public final class Load extends Operation {
         return textSegments;
     }
 
-    /// Get the Mongo documents.
+    /// Get the Mongo speech documents.
     ///
-    /// @return  java.util.List<net.jmp.speeches.store.MongoDocument>
-    private List<MongoDocument> getMongoDocuments() {
+    /// @return  java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    private List<MongoSpeechDocument> getSpeechDocuments() {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entry());
         }
 
-        final List<MongoDocument> documents = new java.util.ArrayList<>();
+        final List<MongoSpeechDocument> speechDocuments = new java.util.ArrayList<>();
 
         final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
-        final MongoCollection<MongoDocument> collection = database.getCollection(this.collectionName, MongoDocument.class);
+        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.collectionName, MongoSpeechDocument.class);
 
         final Bson projectionFields = Projections.fields(
                 Projections.include("textAnalysis")
         );
 
-        try (final MongoCursor<MongoDocument> cursor = collection
+        try (final MongoCursor<MongoSpeechDocument> cursor = collection
                 .find()
                 .projection(projectionFields)
                 .iterator()) {
@@ -245,24 +245,24 @@ public final class Load extends Operation {
             }
 
             while (cursor.hasNext()) {
-                final MongoDocument document = cursor.next();
-                final TextAnalyzerResponse textAnalysis = document.getTextAnalysis();
+                final MongoSpeechDocument speechDocument = cursor.next();
+                final TextAnalyzerResponse textAnalysis = speechDocument.getTextAnalysis();
 
                 if (this.logger.isDebugEnabled()) {
-                    this.logger.debug("ID    : {}", document.getId());
+                    this.logger.debug("ID    : {}", speechDocument.getId());
                     this.logger.debug("Title : {}", textAnalysis.getTitle());
                     this.logger.debug("Author: {}", textAnalysis.getAuthor());
                 }
 
-                documents.add(document);
+                speechDocuments.add(speechDocument);
             }
         }
 
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(documents));
+            this.logger.trace(exitWith(speechDocuments));
         }
 
-        return documents;
+        return speechDocuments;
     }
 
     /// The builder class.

@@ -1,6 +1,7 @@
 package net.jmp.speeches.store;
 
 /*
+ * (#)Store.java    0.3.0   07/10/2025
  * (#)Store.java    0.2.0   07/08/2025
  * (#)Store.java    0.1.0   07/05/2025
  *
@@ -65,7 +66,7 @@ import org.slf4j.LoggerFactory;
 
 /// The store speeches into MongoDB class.
 ///
-/// @version    0.2.0
+/// @version    0.3.0
 /// @since      0.1.0
 public final class Store extends Operation {
     /// The logger.
@@ -225,19 +226,19 @@ public final class Store extends Operation {
             this.logger.trace(entryWith(fileName, fileSize, textAnalysisResponse));
         }
 
-        final MongoDocument document = new MongoDocument();
+        final MongoSpeechDocument speechDocument = new MongoSpeechDocument();
 
-        document.setFileName(fileName);
-        document.setFileSize(fileSize);
-        document.setTotalParagraphs(textAnalysisResponse.getNumberOfParagraphs());
-        document.setTotalSentences(textAnalysisResponse.getNumberOfSentences());
-        document.setTotalTokens(textAnalysisResponse.getNumberOfTokens());
-        document.setTextAnalysis(textAnalysisResponse);
+        speechDocument.setFileName(fileName);
+        speechDocument.setFileSize(fileSize);
+        speechDocument.setTotalParagraphs(textAnalysisResponse.getNumberOfParagraphs());
+        speechDocument.setTotalSentences(textAnalysisResponse.getNumberOfSentences());
+        speechDocument.setTotalTokens(textAnalysisResponse.getNumberOfTokens());
+        speechDocument.setTextAnalysis(textAnalysisResponse);
 
         final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
-        final MongoCollection<MongoDocument> collection = database.getCollection(this.collectionName, MongoDocument.class);
+        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.collectionName, MongoSpeechDocument.class);
 
-        this.logger.info("Inserted: {}", collection.insertOne(document).getInsertedId().asObjectId().getValue());
+        this.logger.info("Inserted: {}", collection.insertOne(speechDocument).getInsertedId().asObjectId().getValue());
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
