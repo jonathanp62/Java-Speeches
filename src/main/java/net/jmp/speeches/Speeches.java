@@ -48,6 +48,7 @@ import java.util.*;
 import static net.jmp.util.logging.LoggerUtils.*;
 
 import net.jmp.speeches.create.Create;
+import net.jmp.speeches.delete.Delete;
 import net.jmp.speeches.load.Load;
 import net.jmp.speeches.store.Store;
 
@@ -203,7 +204,6 @@ final class Speeches {
         final Create create = Create.builder()
                 .searchableEmbeddingModel(this.searchableEmbeddingModel)
                 .searchableIndexName(this.searchableIndexName)
-                .namespace(this.namespace)
                 .pinecone(pinecone)
                 .build();
 
@@ -222,7 +222,12 @@ final class Speeches {
             this.logger.trace(entryWith(pinecone));
         }
 
-        this.logger.info("Deleting Pinecone index: {}", this.searchableIndexName);
+        final Delete delete = Delete.builder()
+                .searchableIndexName(this.searchableIndexName)
+                .pinecone(pinecone)
+                .build();
+
+        delete.operate();
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
