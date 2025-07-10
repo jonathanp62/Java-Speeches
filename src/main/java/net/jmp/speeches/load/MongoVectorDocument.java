@@ -28,6 +28,9 @@ package net.jmp.speeches.load;
  * SOFTWARE.
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.BsonType;
 
 import org.bson.codecs.pojo.annotations.BsonCreator;
@@ -43,6 +46,18 @@ public class MongoVectorDocument {
     @BsonId
     @BsonRepresentation(BsonType.OBJECT_ID)
     private String id;
+
+    /// The speech identifier.
+    private String speechId;
+
+    /// The title.
+    private String title;
+
+    /// The author.
+    private String author;
+
+    /// The vector identifiers.
+    private List<String> vectorIds = new ArrayList<>();
 
     /// The default constructor.
     @BsonCreator
@@ -62,5 +77,61 @@ public class MongoVectorDocument {
     /// @param  id  java.lang.String
     public void setId(final String id) {
         this.id = id;
+    }
+
+    /// Get the speech identifier.
+    ///
+    /// @return java.lang.String
+    public String getSpeechId() {
+        return this.speechId;
+    }
+
+    /// Set the speech identifier.
+    ///
+    /// @param  speechId    java.lang.String
+    public void setSpeechId(final String speechId) {
+        this.speechId = speechId;
+    }
+
+    /// Set the title.
+    ///
+    /// @param  title   java.lang.String
+    public void setTitle(final String title) {
+        this.title = title;
+    }
+
+    /// Get the title.
+    ///
+    /// @return java.lang.String
+    public String getTitle() {
+        return this.title;
+    }
+
+    /// Set the author.
+    ///
+    /// @param  author  java.lang.String
+    public void setAuthor(final String author) {
+        this.author = author;
+    }
+
+    /// Get the author.
+    ///
+    /// @return java.lang.String
+    public String getAuthor() {
+        return this.author;
+    }
+
+    /// Get the vector identifiers.
+    ///
+    /// @return java.util.List<java.lang.String>
+    public List<String> getVectorIds() {
+        return this.vectorIds;
+    }
+
+    /// Add a vector identifier to the collection.
+    ///
+    /// @param  vectorId    java.lang.String
+    public void addVectorId(final String vectorId) {
+        this.vectorIds.add(vectorId);
     }
 }
