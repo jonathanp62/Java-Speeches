@@ -184,16 +184,39 @@ public final class Load extends Operation {
             upsertRecords.add(upsertRecord);
         }
 
-        try (final Index index = this.pinecone.getIndexConnection(this.searchableIndexName)) {
-            final int vectorCountExpected = this.getVectorCount(index) + upsertRecords.size();
-
-            index.upsertRecords(this.namespace, upsertRecords);
-            this.waitUntilUpsertIsComplete(index, vectorCountExpected);
-            this.logger.info("Upserted {} records for {}", upsertRecords.size(), speechDocument.getId());
-            this.insertVectorDocument(speechDocument, upsertRecords);
-        } catch (final ApiException | LoadException e) {
-            this.logger.error(catching(e));
+        if (this.logger.isDebugEnabled()) {
+            this.logger.debug("Batching {} records for {}", upsertRecords.size(), speechDocument.getId());
         }
+
+        final int maxBatchSize = 96;
+        final int numBatches = (int) Math.ceil((double) upsertRecords.size() / maxBatchSize);
+        final List<List<Map<String, String>>> batches = new ArrayList<>(numBatches);
+
+        List<Map<String, String>> batchInUse = null;
+
+        for (int i = 0; i < upsertRecords.size(); i++) {
+            if (i % maxBatchSize == 0) {
+                batchInUse = new ArrayList<>();
+
+                batches.add(batchInUse);
+            }
+
+            batchInUse.add(upsertRecords.get(i));
+        }
+
+        for (final List<Map<String, String>> batch : batches) {
+            try (final Index index = this.pinecone.getIndexConnection(this.searchableIndexName)) {
+                final int vectorCountExpected = this.getVectorCount(index) + batch.size();
+
+                index.upsertRecords(this.namespace, batch);
+                this.waitUntilUpsertIsComplete(index, vectorCountExpected);
+                this.logger.info("Upserted {} records for {}", batch.size(), speechDocument.getId());
+            } catch (final ApiException | LoadException e) {
+                this.logger.error(catching(e));
+            }
+        }
+
+        this.insertVectorDocument(speechDocument, upsertRecords);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
