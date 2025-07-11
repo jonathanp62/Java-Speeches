@@ -112,6 +112,9 @@ final class Speeches {
     /// The maximum number of tokens when embedding.
     private final int maxTokens;
 
+    /// The load timeout in seconds.
+    private final int loadTimeoutInSeconds;
+
     /// The constructor.
     ///
     /// @param  builder net.jmp.speeches.Speeches.Builder
@@ -131,6 +134,7 @@ final class Speeches {
         this.speechesLocation = builder.speechesLocation;
         this.topK = builder.topK;
         this.maxTokens = builder.maxTokens;
+        this.loadTimeoutInSeconds = builder.loadTimeoutInSeconds;
     }
 
     /// The builder method.
@@ -257,6 +261,7 @@ final class Speeches {
                 .vectorsCollectionName(this.mongoDbCollectionVectors)
                 .dbName(this.mongoDbName)
                 .maxTokens(this.maxTokens)
+                .timeoutInSeconds(this.loadTimeoutInSeconds)
                 .build();
 
         load.operate();
@@ -439,6 +444,9 @@ final class Speeches {
         /// The maximum number of tokens when embedding.
         private int maxTokens;
 
+        /// The load timeout in seconds.
+        private int loadTimeoutInSeconds;
+
         /// The default constructor.
         Builder() {
             super();
@@ -570,6 +578,16 @@ final class Speeches {
         /// @return             net.jmp.speeches.Speeches.Builder
         public Builder maxTokens(final int maxTokens) {
             this.maxTokens = maxTokens;
+
+            return this;
+        }
+
+        /// Set the load timeout in seconds.
+        ///
+        /// @param  loadTimeoutInSeconds    int
+        /// @return                         net.jmp.speeches.Speeches.Builder
+        public Builder loadTimeoutInSeconds(final int loadTimeoutInSeconds) {
+            this.loadTimeoutInSeconds = loadTimeoutInSeconds;
 
             return this;
         }

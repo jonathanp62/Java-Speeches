@@ -87,6 +87,7 @@ public final class Load extends Operation {
                 .vectorsCollectionName(builder.vectorsCollectionName)
                 .dbName(builder.dbName)
                 .maxTokens(builder.maxTokens)
+                .loadTimeoutInSeconds(builder.timeoutInSeconds)
         );
     }
 
@@ -214,19 +215,24 @@ public final class Load extends Operation {
         int vectorCountCurrent = this.getVectorCount(index);
         int count = 0;
 
-        while (vectorCountCurrent < vectorCountExpected && count < 60) {
+        while (vectorCountCurrent < vectorCountExpected && count < this.loadTimeoutInSeconds) {
             try {
+                ++count;
+
+                this.logger.warn("Waiting 1 second - iteration {} of {}", count, this.loadTimeoutInSeconds);
+
                 Thread.sleep(1_000);
 
                 vectorCountCurrent = this.getVectorCount(index);
-                ++count;
             } catch (final InterruptedException ie) {
                 this.logger.error(catching(ie));
                 Thread.currentThread().interrupt();
             }
         }
 
-        if (count >= 60) {
+        this.logger.info("Done waiting");
+
+        if (count >= this.loadTimeoutInSeconds) {
             throw new LoadException("Timed out waiting for the upsert of the vectors to complete");
         }
 
@@ -390,6 +396,9 @@ public final class Load extends Operation {
         /// The max tokens.
         private int maxTokens;
 
+        /// The timeout in seconds.
+        private int timeoutInSeconds;
+
         /// The default constructor.
         private Builder() {
             super();
@@ -481,6 +490,16 @@ public final class Load extends Operation {
         /// @return         net.jmp.speeches.load.Load.Builder
         public Builder maxTokens(final int maxTokens) {
             this.maxTokens = maxTokens;
+
+            return this;
+        }
+
+        /// Set the timeout in seconds.
+        ///
+        /// @param  timeoutInSeconds    int
+        /// @return                     net.jmp.speeches.load.Load.Builder
+        public Builder timeoutInSeconds(final int timeoutInSeconds) {
+            this.timeoutInSeconds = timeoutInSeconds;
 
             return this;
         }

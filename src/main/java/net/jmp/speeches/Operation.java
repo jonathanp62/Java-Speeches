@@ -100,6 +100,9 @@ public abstract class Operation {
     /// The maximum number of tokens when embedding.
     protected final int maxTokens;
 
+    /// The load timeout in seconds.
+    protected final int loadTimeoutInSeconds;
+
     /// The constructor.
     ///
     /// @param operationBuilder net.jmp.speeches.Operation.OperationBuilder
@@ -121,6 +124,7 @@ public abstract class Operation {
         this.speechesLocation = operationBuilder.speechesLocation;
         this.topK = operationBuilder.topK;
         this.maxTokens = operationBuilder.maxTokens;
+        this.loadTimeoutInSeconds = operationBuilder.loadTimeoutInSeconds;
     }
 
     /// Return the operation builder.
@@ -278,6 +282,9 @@ public abstract class Operation {
         /// The maximum number of tokens when embedding.
         private int maxTokens;
 
+        /// The load timeout in seconds.
+        private int loadTimeoutInSeconds;
+
         /// The default constructor.
         protected OperationBuilder() {
             super();
@@ -429,6 +436,16 @@ public abstract class Operation {
         /// @return             net.jmp.speeches.Operation.OperationBuilder
         public OperationBuilder maxTokens(final int maxTokens) {
             this.maxTokens = maxTokens;
+
+            return this;
+        }
+
+        /// Set the load timeout in seconds.
+        ///
+        /// @param  loadTimeoutInSeconds    int
+        /// @return                         net.jmp.speeches.Operation.OperationBuilder
+        public OperationBuilder loadTimeoutInSeconds(final int loadTimeoutInSeconds) {
+            this.loadTimeoutInSeconds = loadTimeoutInSeconds;
 
             return this;
         }

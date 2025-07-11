@@ -70,6 +70,7 @@ public final class Main implements Runnable {
         final String operation = System.getProperty("app.operation");
 
         final String chatModel = System.getProperty("app.chatModel");
+        final String loadTimeoutInSeconds = System.getProperty("app.loadTimeoutInSeconds");
         final String maxTokens = System.getProperty("app.maxTokens");
         final String mongoDbCollectionSpeeches = System.getProperty("app.mongoDbCollectionSpeeches");
         final String mongoDbCollectionVectors = System.getProperty("app.mongoDbCollectionVectors");
@@ -85,6 +86,7 @@ public final class Main implements Runnable {
 
         this.logger.info("Operation                    : {}", operation);
         this.logger.info("Chat Model                   : {}", chatModel);
+        this.logger.info("Load Timeout (in seconds)    : {}", loadTimeoutInSeconds);
         this.logger.info("Maximum Tokens               : {}", maxTokens);
         this.logger.info("MongoDB Collection (Speeches): {}", mongoDbCollectionSpeeches);
         this.logger.info("MongoDB Collection (Vectors) : {}", mongoDbCollectionVectors);
@@ -112,6 +114,7 @@ public final class Main implements Runnable {
                 .speechesLocation(speechesLocation)
                 .topK(Integer.parseInt(topK))
                 .maxTokens(Integer.parseInt(maxTokens))
+                .loadTimeoutInSeconds(Integer.parseInt(loadTimeoutInSeconds))
                 .build();
 
         speeches.start(operation);

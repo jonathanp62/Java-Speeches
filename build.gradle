@@ -49,6 +49,7 @@ apply plugin: 'net.jmp.gradle.plugin.projectinfo-info'
 ext {
 	chatModel = 'gpt-4.1'
 	javaMainClass = 'net.jmp.speeches.Main'
+	loadTimeoutInSeconds = 60
 	maxTokens = 512
 	mongoDbCollectionSpeeches = 'speeches'
 	mongoDbCollectionVectors = 'vectors'
@@ -123,6 +124,7 @@ tasks.withType(JavaExec).configureEach {
 	systemProperties(
 			[
  			 'app.chatModel': chatModel,
+ 			 'app.loadTimeoutInSeconds': loadTimeoutInSeconds,
  			 'app.maxTokens': maxTokens,
 			 'app.mongoDbCollectionSpeeches': mongoDbCollectionSpeeches,
 			 'app.mongoDbCollectionVectors': mongoDbCollectionVectors,
