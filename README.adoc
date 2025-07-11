@@ -53,6 +53,7 @@ System Properties
 |===================================================
 |Property Name               |Value
 |app.chatModel               |gpt-4.1
+|app.loadTimeoutInSeconds    |60
 |app.maxTokens               |512
 |app.mongoDbCollection       |speeches
 |app.mongoDbName             |speeches
@@ -68,5 +69,5 @@ System Properties
 |app.topK                    |10
 |===================================================
 
-Current version: 0.3.0.
+Current version: 0.4.0.
 ~~~~~~~~~~~~~~~~~~~~~~~
