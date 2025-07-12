@@ -30,12 +30,27 @@ package net.jmp.speeches.search;
  */
 
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Projections;
 
 import io.pinecone.clients.Pinecone;
+
+import java.util.*;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import net.jmp.speeches.Operation;
 
 import static net.jmp.util.logging.LoggerUtils.*;
+
+import net.jmp.speeches.store.MongoSpeechDocument;
+
+import net.jmp.speeches.text.TextAnalyzerResponse;
+
+import org.bson.conversions.Bson;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +62,18 @@ import org.slf4j.LoggerFactory;
 public final class Search extends Operation {
     /// The logger.
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
+
+    /// The set of speech titles.
+    private final Set<String> titles = new HashSet<>();
+
+    /// The set of speech authors.
+    private final Set<String> authors = new HashSet<>();
+
+    /// The set of speech author last names.
+    private final Set<String> authorLastNames = new HashSet<>();
+
+    /// Regular expression pattern to get the last word in a string (last name).
+    private final Pattern pattern = Pattern.compile("(\\w+)$");
 
     /// The constructor.
     ///
@@ -84,9 +111,152 @@ public final class Search extends Operation {
 
         this.logger.info("Searching Pinecone index: {}", this.searchableIndexName);
 
+        this.loadSpeechSets();
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
+    }
+
+    /// Load the speech sets.
+    private void loadSpeechSets() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final List<MongoSpeechDocument> speechDocuments = this.getSpeechDocuments();
+
+        this.loadSpeechTitles(speechDocuments);
+        this.loadSpeechAuthors(speechDocuments);
+
+        this.loadSpeechAuthorLastNames();
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Load the speech title.
+    ///
+    /// @param  speechDocuments   java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    private void loadSpeechTitles(final List<MongoSpeechDocument> speechDocuments) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(speechDocuments));
+        }
+
+        for (final MongoSpeechDocument speechDocument : speechDocuments) {
+            this.titles.add(speechDocument.getTextAnalysis().getTitle());
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Load the speech authors.
+    ///
+    /// @param  speechDocuments   java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    private void loadSpeechAuthors(final List<MongoSpeechDocument> speechDocuments) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(speechDocuments));
+        }
+
+        for (final MongoSpeechDocument speechDocument : speechDocuments) {
+            this.authors.add(speechDocument.getTextAnalysis().getAuthor());
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Load the speech author last names.
+    private void loadSpeechAuthorLastNames() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        this.authors.forEach(author -> this.authorLastNames.add(this.getAuthorLastName(author).orElse("")));
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Get the author last name.
+    ///
+    /// @param  author  java.lang.String
+    /// @return         java.util.Optional<java.lang.String>
+    private Optional<String> getAuthorLastName(final String author) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(author));
+        }
+
+        String result = null;
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+
+        final Matcher matcher = this.pattern.matcher(author);
+
+        if (matcher.find()) {
+            result = matcher.group(1); // Group 1 contains the captured last name
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(result));
+        }
+
+        return Optional.ofNullable(result);
+    }
+
+    /// Get the Mongo speech documents.
+    ///
+    /// @return  java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    private List<MongoSpeechDocument> getSpeechDocuments() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        List<MongoSpeechDocument> speechDocuments;
+
+        final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
+        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.speechesCollectionName, MongoSpeechDocument.class);
+
+        final Bson projectionFields = Projections.fields(
+                Projections.include("textAnalysis")
+        );
+
+        try (final MongoCursor<MongoSpeechDocument> cursor = collection
+                .find()
+                .projection(projectionFields)
+                .iterator()) {
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("There are {} documents available", cursor.available());
+            }
+
+            speechDocuments = new ArrayList<>(cursor.available());
+
+            while (cursor.hasNext()) {
+                final MongoSpeechDocument speechDocument = cursor.next();
+                final TextAnalyzerResponse textAnalysis = speechDocument.getTextAnalysis();
+
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug("ID    : {}", speechDocument.getId());
+                    this.logger.debug("Title : {}", textAnalysis.getTitle());
+                    this.logger.debug("Author: {}", textAnalysis.getAuthor());
+                }
+
+                speechDocuments.add(speechDocument);
+            }
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(speechDocuments));
+        }
+
+        return speechDocuments;
     }
 
     /// The builder class.

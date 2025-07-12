@@ -1,6 +1,7 @@
 package net.jmp.speeches.load;
 
 /*
+ * (#)Load.java 0.4.0   07/12/2025
  * (#)Load.java 0.3.0   07/08/2025
  * (#)Load.java 0.1.0   07/05/2025
  *
@@ -67,7 +68,7 @@ import org.slf4j.LoggerFactory;
 
 /// The load Pinecone index from MongoDB class.
 ///
-/// @version    0.3.0
+/// @version    0.4.0
 /// @since      0.1.0
 public final class Load extends Operation {
     /// The logger.
@@ -352,7 +353,7 @@ public final class Load extends Operation {
             this.logger.trace(entry());
         }
 
-        final List<MongoSpeechDocument> speechDocuments = new java.util.ArrayList<>();
+        List<MongoSpeechDocument> speechDocuments;
 
         final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
         final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.speechesCollectionName, MongoSpeechDocument.class);
@@ -368,6 +369,8 @@ public final class Load extends Operation {
             if (this.logger.isDebugEnabled()) {
                 this.logger.debug("There are {} documents available", cursor.available());
             }
+
+            speechDocuments = new ArrayList<>(cursor.available());
 
             while (cursor.hasNext()) {
                 final MongoSpeechDocument speechDocument = cursor.next();
