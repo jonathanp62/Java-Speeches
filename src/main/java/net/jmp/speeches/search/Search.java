@@ -113,6 +113,11 @@ public final class Search extends Operation {
 
         this.loadSpeechSets();
 
+        final Set<String> titlesInQuery = this.findTitles();
+        final Set<String> authorsInQuery = this.findAuthorFullNames();
+
+        authorsInQuery.addAll(this.findAuthorLastNames());
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
@@ -263,19 +268,87 @@ public final class Search extends Operation {
         return speechDocuments;
     }
 
+    /// Find the author full names in the query text.
+    ///
+    /// @return  java.util.Set<java.lang.String>
+    private Set<String> findAuthorFullNames() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final Set<String> results = new HashSet<>();
+
+        this.authors.forEach(author -> {
+            if (this.containsIgnoreCase(author)) {
+                results.add(author);
+            }
+        });
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(results));
+        }
+
+        return results;
+    }
+
+    /// Find the author last names in the query text.
+    ///
+    /// @return  java.util.Set<java.lang.String>
+    private Set<String> findAuthorLastNames() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final Set<String> results = new HashSet<>();
+
+        this.authorNames.keySet().forEach(lastName -> {
+            if (this.containsIgnoreCase(lastName)) {
+                results.add(this.authorNames.get(lastName));
+            }
+        });
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(results));
+        }
+
+        return results;
+    }
+
+    /// Find the speech titles in the query text.
+    ///
+    /// @return  java.util.Set<java.lang.String>
+    private Set<String> findTitles() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final Set<String> results = new HashSet<>();
+
+        this.titles.forEach(title -> {
+            if (this.containsIgnoreCase(title)) {
+                results.add(title);
+            }
+        });
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(results));
+        }
+
+        return results;
+    }
+
     /// Check if the search string is contained in the
-    /// search text without any case sensitivity.
+    /// query text without any case sensitivity.
     ///
     /// @param  searchString    java.lang.String
-    /// @param  searchText      java.lang.String
     /// @return                 boolean
-    private boolean containsIgnoreCase(final String searchString, final String searchText) {
+    private boolean containsIgnoreCase(final String searchString) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(searchString, searchText));
+            this.logger.trace(entryWith(searchString));
         }
 
         final Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
-        final Matcher matcher = pattern.matcher(searchText);
+        final Matcher matcher = pattern.matcher(this.queryText);
         final boolean result = matcher.find();
 
         if (this.logger.isTraceEnabled()) {

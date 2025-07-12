@@ -164,7 +164,35 @@ tasks.register('search', JavaExec) {
 	var sysProps = getSystemProperties()
 
 	sysProps.put('app.operation', 'search')
-	sysProps.put('app.queryText', 'To be determined')
+	sysProps.put('app.queryText', 'How are pardons treated in the United States?')
+}
+
+tasks.register('search-by-author-full-name', JavaExec) {
+	var sysProps = getSystemProperties()
+
+	sysProps.put('app.operation', 'search')
+	sysProps.put('app.queryText', 'What are the principles cited by Gerald R. Ford in his speeches?')
+}
+
+tasks.register('search-by-author-last-name', JavaExec) {
+	var sysProps = getSystemProperties()
+
+	sysProps.put('app.operation', 'search')
+	sysProps.put('app.queryText', 'What does Nixon have to say about Vietnam?')
+}
+
+tasks.register('search-by-combo', JavaExec) {
+	var sysProps = getSystemProperties()
+
+	sysProps.put('app.operation', 'search')
+	sysProps.put('app.queryText', 'What did Richard M. Nixon and Ford discuss on taking office?')
+}
+
+tasks.register('search-by-title', JavaExec) {
+	var sysProps = getSystemProperties()
+
+	sysProps.put('app.operation', 'search')
+	sysProps.put('app.queryText', 'What is the them of the address to British Parliament?')
 }
 
 tasks.register('store', JavaExec) {
