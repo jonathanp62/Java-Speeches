@@ -50,6 +50,7 @@ import static net.jmp.util.logging.LoggerUtils.*;
 import net.jmp.speeches.create.Create;
 import net.jmp.speeches.delete.Delete;
 import net.jmp.speeches.load.Load;
+import net.jmp.speeches.search.Search;
 import net.jmp.speeches.store.Store;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
@@ -279,7 +280,19 @@ final class Speeches {
             this.logger.trace(entryWith(pinecone));
         }
 
-        this.logger.info("Searching Pinecone index: {}", this.searchableIndexName);
+        final Search search = Search.builder()
+                .searchableIndexName(this.searchableIndexName)
+                .searchableEmbeddingModel(this.searchableEmbeddingModel)
+                .pinecone(pinecone)
+                .chatModel(this.chatModel)
+                .namespace(this.namespace)
+                .rerankingModel(this.rerankingModel)
+                .queryText(this.queryText)
+                .openAiApiKey(this.openAiApiKey)
+                .topK(this.topK)
+                .build();
+
+        search.operate();
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());

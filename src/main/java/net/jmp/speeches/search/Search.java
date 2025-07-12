@@ -1,6 +1,7 @@
 package net.jmp.speeches.search;
 
 /*
+ * (#)Search.java   0.4.0   07/12/2025
  * (#)Search.java   0.1.0   07/05/2025
  *
  * @author   Jonathan Parker
@@ -28,6 +29,8 @@ package net.jmp.speeches.search;
  * SOFTWARE.
  */
 
+import io.pinecone.clients.Pinecone;
+
 import net.jmp.speeches.Operation;
 
 import static net.jmp.util.logging.LoggerUtils.*;
@@ -37,15 +40,34 @@ import org.slf4j.LoggerFactory;
 
 /// The search Pinecone index class.
 ///
-/// @version    0.1.0
+/// @version    0.4.0
 /// @since      0.1.0
 public final class Search extends Operation {
     /// The logger.
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     /// The constructor.
-    public Search() {
-        super(Operation.operationBuilder());
+    ///
+    /// @param  builder net.jmp.speeches.search.Search.Builder
+    public Search(final Builder builder) {
+        super(Operation.operationBuilder()
+                .pinecone(builder.pinecone)
+                .chatModel(builder.chatModel)
+                .searchableEmbeddingModel(builder.searchableEmbeddingModel)
+                .searchableIndexName(builder.searchableIndexName)
+                .namespace(builder.namespace)
+                .rerankingModel(builder.rerankingModel)
+                .queryText(builder.queryText)
+                .openAiApiKey(builder.openAiApiKey)
+                .topK(builder.topK)
+        );
+    }
+
+    /// Return the builder.
+    ///
+    /// @return net.jmp.speeches.search.Search.Builder
+    public static Builder builder() {
+        return new Builder();
     }
 
     /// The operate method.
@@ -55,8 +77,142 @@ public final class Search extends Operation {
             this.logger.trace(entry());
         }
 
+        this.logger.info("Searching Pinecone index: {}", this.searchableIndexName);
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
+        }
+    }
+
+    /// The builder class.
+    public static class Builder {
+        /// The Pinecone client.
+        private Pinecone pinecone;
+
+        /// The chat model.
+        private String chatModel;
+
+        /// The searchable embedding model.
+        private String searchableEmbeddingModel;
+
+        /// The searchable index name.
+        private String searchableIndexName;
+
+        /// The namespace.
+        private String namespace;
+
+        /// The re-ranking model.
+        private String rerankingModel;
+
+        /// The query text.
+        private String queryText;
+
+        /// The OpenAI API key.
+        private String openAiApiKey;
+
+        /// The number of top results to return when searching.
+        private int topK;
+
+        /// The default constructor.
+        public Builder() {
+            super();
+        }
+
+        /// Set the Pinecone client.
+        ///
+        /// @param  pinecone net.jmp.pinecone.Pinecone
+        /// @return          net.jmp.speeches.search.Search.Builder
+        public Builder pinecone(final Pinecone pinecone) {
+            this.pinecone = pinecone;
+
+            return this;
+        }
+
+        /// Set the chat model.
+        ///
+        /// @param  chatModel   java.lang.String
+        /// @return             net.jmp.speeches.search.Search.Builder
+        public Builder chatModel(final String chatModel) {
+            this.chatModel = chatModel;
+
+            return this;
+        }
+
+        /// Set the searchable embedding model.
+        ///
+        /// @param  searchableEmbeddingModel    java.lang.String
+        /// @return                             net.jmp.speeches.search.Search.Builder
+        public Builder searchableEmbeddingModel(final String searchableEmbeddingModel) {
+            this.searchableEmbeddingModel = searchableEmbeddingModel;
+
+            return this;
+        }
+
+        /// Set the searchable index name.
+        ///
+        /// @param  searchableIndexName java.lang.String
+        /// @return                     net.jmp.speeches.search.Search.Builder
+        public Builder searchableIndexName(final String searchableIndexName) {
+            this.searchableIndexName = searchableIndexName;
+
+            return this;
+        }
+
+        /// Set the namespace.
+        ///
+        /// @param  namespace java.lang.String
+        /// @return           net.jmp.speeches.search.Search.Builder
+        public Builder namespace(final String namespace) {
+            this.namespace = namespace;
+
+            return this;
+        }
+
+        /// Set the re-ranking model.
+        ///
+        /// @param  rerankingModel java.lang.String
+        /// @return                net.jmp.speeches.search.Search.Builder
+        public Builder rerankingModel(final String rerankingModel) {
+            this.rerankingModel = rerankingModel;
+
+            return this;
+        }
+
+        /// Set the query or search text.
+        ///
+        /// @param  queryText java.lang.String
+        /// @return           net.jmp.speeches.search.Search.Builder
+        public Builder queryText(final String queryText) {
+            this.queryText = queryText;
+
+            return this;
+        }
+
+        /// Set the OpenAI API key.
+        ///
+        /// @param  openAiApiKey java.lang.String
+        /// @return              net.jmp.speeches.search.Search.Builder
+        public Builder openAiApiKey(final String openAiApiKey) {
+            this.openAiApiKey = openAiApiKey;
+
+            return this;
+        }
+
+        /// Set the topK value.
+        ///
+        /// @param  topK    int
+        /// @return         net.jmp.speeches.search.Search.Builder
+        public Builder topK(final int topK) {
+            this.topK = topK;
+
+            return this;
+        }
+
+        /// Build the search object.
+        ///
+        /// @return  net.jmp.speeches.search.Search
+        public Search build() {
+            return new Search(this);
         }
     }
 }
