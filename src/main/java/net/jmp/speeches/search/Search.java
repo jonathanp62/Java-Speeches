@@ -69,11 +69,11 @@ public final class Search extends Operation {
     /// The set of speech authors.
     private final Set<String> authors = new HashSet<>();
 
-    /// The set of speech author last names.
-    private final Set<String> authorLastNames = new HashSet<>();
+    /// The map of speech author last names to their full names.
+    private final Map<String, String> authorNames = new HashMap<>();
 
     /// Regular expression pattern to get the last word in a string (last name).
-    private final Pattern pattern = Pattern.compile("(\\w+)$");
+    private final Pattern patternLastWord = Pattern.compile("(\\w+)$");
 
     /// The constructor.
     ///
@@ -176,7 +176,11 @@ public final class Search extends Operation {
             this.logger.trace(entry());
         }
 
-        this.authors.forEach(author -> this.authorLastNames.add(this.getAuthorLastName(author).orElse("")));
+        this.authors.forEach(author -> {
+            final String authorLastName = this.getAuthorLastName(author).orElse(null);
+
+            this.authorNames.put(authorLastName, author);
+        });
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -198,7 +202,7 @@ public final class Search extends Operation {
             this.logger.trace(exit());
         }
 
-        final Matcher matcher = this.pattern.matcher(author);
+        final Matcher matcher = this.patternLastWord.matcher(author);
 
         if (matcher.find()) {
             result = matcher.group(1); // Group 1 contains the captured last name
@@ -257,6 +261,28 @@ public final class Search extends Operation {
         }
 
         return speechDocuments;
+    }
+
+    /// Check if the search string is contained in the
+    /// search text without any case sensitivity.
+    ///
+    /// @param  searchString    java.lang.String
+    /// @param  searchText      java.lang.String
+    /// @return                 boolean
+    private boolean containsIgnoreCase(final String searchString, final String searchText) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(searchString, searchText));
+        }
+
+        final Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
+        final Matcher matcher = pattern.matcher(searchText);
+        final boolean result = matcher.find();
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(result));
+        }
+
+        return result;
     }
 
     /// The builder class.
