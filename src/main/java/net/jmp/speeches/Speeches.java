@@ -164,7 +164,7 @@ final class Speeches {
                 case "create" -> this.create(pinecone);
                 case "delete" -> this.delete(pinecone);
                 case "load" -> this.load(pinecone, mongoClient);
-                case "search" -> this.search(pinecone);
+                case "search" -> this.search(pinecone, mongoClient);
                 case "store" -> this.store(mongoClient);
                 default -> this.logger.error("Unknown operation: {}", operation);
             }
@@ -276,9 +276,9 @@ final class Speeches {
     /// Search the Pinecone index.
     ///
     /// @param  pinecone io.pinecone.clients.Pinecone
-    private void search(final Pinecone pinecone) {
+    private void search(final Pinecone pinecone, final MongoClient mongoClient) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(pinecone));
+            this.logger.trace(entryWith(pinecone, mongoClient));
         }
 
         final Search search = Search.builder()
@@ -290,6 +290,9 @@ final class Speeches {
                 .rerankingModel(this.rerankingModel)
                 .queryText(this.queryText)
                 .openAiApiKey(this.openAiApiKey)
+                .mongoClient(mongoClient)
+                .speechesCollectionName(this.mongoDbCollectionSpeeches)
+                .dbName(this.mongoDbName)
                 .topK(this.topK)
                 .build();
 

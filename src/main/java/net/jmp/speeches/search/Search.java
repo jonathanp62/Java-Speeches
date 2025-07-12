@@ -29,6 +29,8 @@ package net.jmp.speeches.search;
  * SOFTWARE.
  */
 
+import com.mongodb.client.MongoClient;
+
 import io.pinecone.clients.Pinecone;
 
 import net.jmp.speeches.Operation;
@@ -59,6 +61,9 @@ public final class Search extends Operation {
                 .rerankingModel(builder.rerankingModel)
                 .queryText(builder.queryText)
                 .openAiApiKey(builder.openAiApiKey)
+                .mongoClient(builder.mongoClient)
+                .dbName(builder.dbName)
+                .speechesCollectionName(builder.speechesCollectionName)
                 .topK(builder.topK)
         );
     }
@@ -109,6 +114,15 @@ public final class Search extends Operation {
 
         /// The OpenAI API key.
         private String openAiApiKey;
+
+        /// The MongoDB client.
+        private MongoClient mongoClient;
+
+        /// The MongoDB speeches collection name.
+        private String speechesCollectionName;
+
+        /// The MongoDB database name.
+        private String dbName;
 
         /// The number of top results to return when searching.
         private int topK;
@@ -194,6 +208,36 @@ public final class Search extends Operation {
         /// @return              net.jmp.speeches.search.Search.Builder
         public Builder openAiApiKey(final String openAiApiKey) {
             this.openAiApiKey = openAiApiKey;
+
+            return this;
+        }
+
+        /// Set the MongoDB client.
+        ///
+        /// @param  mongoClient com.mongodb.client.MongoClient
+        /// @return             net.jmp.speeches.search.Search.Builder
+        public Builder mongoClient(final MongoClient mongoClient) {
+            this.mongoClient = mongoClient;
+
+            return this;
+        }
+
+        /// Set the MongoDB collection name.
+        ///
+        /// @param  speechesCollectionName  java.lang.String
+        /// @return                         net.jmp.speeches.search.Search.Builder
+        public Builder speechesCollectionName(final String speechesCollectionName) {
+            this.speechesCollectionName = speechesCollectionName;
+
+            return this;
+        }
+
+        /// Set the MongoDB database name.
+        ///
+        /// @param  dbName java.lang.String
+        /// @return        net.jmp.speeches.search.Search.Builder
+        public Builder dbName(final String dbName) {
+            this.dbName = dbName;
 
             return this;
         }
