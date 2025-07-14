@@ -69,6 +69,9 @@ public final class Search extends Operation {
     /// Regular expression pattern to get the last word in a string (last name).
     private final Pattern patternLastWord = Pattern.compile("(\\w+)$");
 
+    /// The Gradle task name.
+    private final String gradleTaskName;
+
     /// The constructor.
     ///
     /// @param  builder net.jmp.speeches.search.Search.Builder
@@ -87,6 +90,8 @@ public final class Search extends Operation {
                 .speechesCollectionName(builder.speechesCollectionName)
                 .topK(builder.topK)
         );
+
+        this.gradleTaskName = builder.gradleTaskName;
     }
 
     /// Return the builder.
@@ -111,6 +116,101 @@ public final class Search extends Operation {
         final Set<String> authorsInQuery = this.findAuthorFullNames();
 
         authorsInQuery.addAll(this.findAuthorLastNames());
+
+        final Map<String, String> filters = new HashMap<>();
+
+        /* Unfortunately the last title and author are included */
+
+        if (!titlesInQuery.isEmpty() || !authorsInQuery.isEmpty()) {
+            titlesInQuery.forEach(title -> filters.put("title", title));
+            authorsInQuery.forEach(author -> filters.put("author", author));
+        }
+
+        /* Search by Gradle task name */
+
+        switch (this.gradleTaskName) {
+            case "search" -> this.search(filters);
+            case "search-by-author-full-name" -> this.searchByAuthorFullName(filters);
+            case "search-by-author-last-name" -> this.searchByAuthorLastName(filters);
+            case "search-by-combo" -> this.searchByCombo(filters);
+            case "search-by-title" -> this.searchByTitle(filters);
+            default -> this.logger.error("Unrecognized Gradle task name: {}", this.gradleTaskName);
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Search the Pinecone index.
+    ///
+    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
+    private void search(final Map<String, String> filters) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filters));
+        }
+
+        this.logger.info("In search");
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Search the Pinecone index by author full name.
+    ///
+    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
+    private void searchByAuthorFullName(final Map<String, String> filters) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filters));
+        }
+
+        this.logger.info("In search by author full name");  // {author=Gerald R. Ford}
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Search the Pinecone index by author last name.
+    ///
+    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
+    private void searchByAuthorLastName(final Map<String, String> filters) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filters));
+        }
+
+        this.logger.info("In search by author last name");  // {author=Richard M. Nixon}
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Search the Pinecone index by title and author.
+    ///
+    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
+    private void searchByCombo(final Map<String, String> filters) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filters));
+        }
+
+        this.logger.info("In search by combo"); // {author=Richard M. Nixon, title=On taking office}
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Search the Pinecone index by title.
+    ///
+    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
+    private void searchByTitle(final Map<String, String> filters) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filters));
+        }
+
+        this.logger.info("In search by title"); // {title=Address to British Parliament}
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -311,6 +411,9 @@ public final class Search extends Operation {
 
     /// The builder class.
     public static class Builder {
+        /// The Gradle task name.
+        private String gradleTaskName;
+
         /// The Pinecone client.
         private Pinecone pinecone;
 
@@ -350,6 +453,16 @@ public final class Search extends Operation {
         /// The default constructor.
         public Builder() {
             super();
+        }
+
+        /// Set the Gradle task name.
+        ///
+        /// @param  gradleTaskName  java.lang.String
+        /// @return                 net.jmp.speeches.search.Search.Builder
+        public Builder gradleTaskName(final String gradleTaskName) {
+            this.gradleTaskName = gradleTaskName;
+
+            return this;
         }
 
         /// Set the Pinecone client.

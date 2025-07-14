@@ -295,6 +295,7 @@ final class Speeches {
                 .speechesCollectionName(this.mongoDbCollectionSpeeches)
                 .dbName(this.mongoDbName)
                 .topK(this.topK)
+                .gradleTaskName(System.getProperty("app.gradleTaskName"))
                 .build();
 
         search.operate();
