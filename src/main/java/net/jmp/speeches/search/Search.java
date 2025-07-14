@@ -30,10 +30,6 @@ package net.jmp.speeches.search;
  */
 
 import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Projections;
 
 import io.pinecone.clients.Pinecone;
 
@@ -48,9 +44,7 @@ import static net.jmp.util.logging.LoggerUtils.*;
 
 import net.jmp.speeches.documents.MongoSpeechDocument;
 
-import net.jmp.speeches.text.TextAnalyzerResponse;
-
-import org.bson.conversions.Bson;
+import net.jmp.speeches.utils.MongoUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +123,12 @@ public final class Search extends Operation {
             this.logger.trace(entry());
         }
 
-        final List<MongoSpeechDocument> speechDocuments = this.getSpeechDocuments();
+        final List<MongoSpeechDocument> speechDocuments = MongoUtils.getSpeechDocuments(
+                this.logger,
+                this.mongoClient,
+                this.dbName,
+                this.speechesCollectionName
+        );
 
         this.loadSpeechTitles(speechDocuments);
         this.loadSpeechAuthors(speechDocuments);
@@ -218,54 +217,6 @@ public final class Search extends Operation {
         }
 
         return Optional.ofNullable(result);
-    }
-
-    /// Get the Mongo speech documents.
-    ///
-    /// @return  java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
-    private List<MongoSpeechDocument> getSpeechDocuments() {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entry());
-        }
-
-        List<MongoSpeechDocument> speechDocuments;
-
-        final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
-        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.speechesCollectionName, MongoSpeechDocument.class);
-
-        final Bson projectionFields = Projections.fields(
-                Projections.include("textAnalysis")
-        );
-
-        try (final MongoCursor<MongoSpeechDocument> cursor = collection
-                .find()
-                .projection(projectionFields)
-                .iterator()) {
-            if (this.logger.isDebugEnabled()) {
-                this.logger.debug("There are {} documents available", cursor.available());
-            }
-
-            speechDocuments = new ArrayList<>(cursor.available());
-
-            while (cursor.hasNext()) {
-                final MongoSpeechDocument speechDocument = cursor.next();
-                final TextAnalyzerResponse textAnalysis = speechDocument.getTextAnalysis();
-
-                if (this.logger.isDebugEnabled()) {
-                    this.logger.debug("ID    : {}", speechDocument.getId());
-                    this.logger.debug("Title : {}", textAnalysis.getTitle());
-                    this.logger.debug("Author: {}", textAnalysis.getAuthor());
-                }
-
-                speechDocuments.add(speechDocument);
-            }
-        }
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(speechDocuments));
-        }
-
-        return speechDocuments;
     }
 
     /// Find the author full names in the query text.

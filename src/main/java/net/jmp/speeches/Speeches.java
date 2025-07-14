@@ -275,7 +275,8 @@ final class Speeches {
 
     /// Search the Pinecone index.
     ///
-    /// @param  pinecone io.pinecone.clients.Pinecone
+    /// @param  pinecone    io.pinecone.clients.Pinecone
+    /// @param  mongoClient org.mongodb.mongo.MongoClient
     private void search(final Pinecone pinecone, final MongoClient mongoClient) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(pinecone, mongoClient));

@@ -32,10 +32,7 @@ package net.jmp.speeches.load;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-
-import com.mongodb.client.model.Projections;
 
 import io.pinecone.clients.Index;
 import io.pinecone.clients.Pinecone;
@@ -58,9 +55,9 @@ import net.jmp.speeches.text.TextAnalyzerResponse;
 import net.jmp.speeches.text.TextSplitter;
 import net.jmp.speeches.text.TextSplitterResponse;
 
-import static net.jmp.util.logging.LoggerUtils.*;
+import net.jmp.speeches.utils.MongoUtils;
 
-import org.bson.conversions.Bson;
+import static net.jmp.util.logging.LoggerUtils.*;
 
 import org.openapitools.db_data.client.ApiException;
 
@@ -114,7 +111,12 @@ public final class Load extends Operation {
         if (this.doesSearchableIndexExist() && !this.isSearchableIndexLoaded()) {
             this.logger.info("Loading searchable index: {}", this.searchableIndexName);
 
-            final List<MongoSpeechDocument> speechDocuments = this.getSpeechDocuments();
+            final List<MongoSpeechDocument> speechDocuments = MongoUtils.getSpeechDocuments(
+                    this.logger,
+                    this.mongoClient,
+                    this.dbName,
+                    this.speechesCollectionName
+            );
 
             if (this.logger.isDebugEnabled()) {
                 this.logger.debug("Documents fetched: {}", speechDocuments.size());
@@ -344,54 +346,6 @@ public final class Load extends Operation {
         }
 
         return textSegments;
-    }
-
-    /// Get the Mongo speech documents.
-    ///
-    /// @return  java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
-    private List<MongoSpeechDocument> getSpeechDocuments() {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entry());
-        }
-
-        List<MongoSpeechDocument> speechDocuments;
-
-        final MongoDatabase database = this.mongoClient.getDatabase(this.dbName);
-        final MongoCollection<MongoSpeechDocument> collection = database.getCollection(this.speechesCollectionName, MongoSpeechDocument.class);
-
-        final Bson projectionFields = Projections.fields(
-                Projections.include("textAnalysis")
-        );
-
-        try (final MongoCursor<MongoSpeechDocument> cursor = collection
-                .find()
-                .projection(projectionFields)
-                .iterator()) {
-            if (this.logger.isDebugEnabled()) {
-                this.logger.debug("There are {} documents available", cursor.available());
-            }
-
-            speechDocuments = new ArrayList<>(cursor.available());
-
-            while (cursor.hasNext()) {
-                final MongoSpeechDocument speechDocument = cursor.next();
-                final TextAnalyzerResponse textAnalysis = speechDocument.getTextAnalysis();
-
-                if (this.logger.isDebugEnabled()) {
-                    this.logger.debug("ID    : {}", speechDocument.getId());
-                    this.logger.debug("Title : {}", textAnalysis.getTitle());
-                    this.logger.debug("Author: {}", textAnalysis.getAuthor());
-                }
-
-                speechDocuments.add(speechDocument);
-            }
-        }
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(speechDocuments));
-        }
-
-        return speechDocuments;
     }
 
     /// The builder class.
