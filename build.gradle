@@ -185,14 +185,14 @@ tasks.register('search-by-combo', JavaExec) {
 	var sysProps = getSystemProperties()
 
 	sysProps.put('app.operation', 'search')
-	sysProps.put('app.queryText', 'What did Richard M. Nixon and Ford discuss on taking office?')
+	sysProps.put('app.queryText', 'What did Richard M. Nixon discuss on taking office?')
 }
 
 tasks.register('search-by-title', JavaExec) {
 	var sysProps = getSystemProperties()
 
 	sysProps.put('app.operation', 'search')
-	sysProps.put('app.queryText', 'What is the them of the address to British Parliament?')
+	sysProps.put('app.queryText', 'What is the theme of the address to British Parliament?')
 }
 
 tasks.register('store', JavaExec) {
