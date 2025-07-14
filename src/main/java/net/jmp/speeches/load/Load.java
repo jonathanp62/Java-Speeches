@@ -51,7 +51,8 @@ import java.util.UUID;
 
 import net.jmp.speeches.Operation;
 
-import net.jmp.speeches.store.MongoSpeechDocument;
+import net.jmp.speeches.documents.MongoSpeechDocument;
+import net.jmp.speeches.documents.MongoVectorDocument;
 
 import net.jmp.speeches.text.TextAnalyzerResponse;
 import net.jmp.speeches.text.TextSplitter;
@@ -131,7 +132,7 @@ public final class Load extends Operation {
 
     /// Process the speech documents.
     ///
-    /// @param  speechDocuments   java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    /// @param  speechDocuments   java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
     private void processDocuments(final List<MongoSpeechDocument> speechDocuments) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(speechDocuments));
@@ -160,7 +161,7 @@ public final class Load extends Operation {
 
     /// Embed the speech document.
     ///
-    /// @param  speechDocument  net.jmp.speeches.store.MongoSpeechDocument
+    /// @param  speechDocument  net.jmp.speeches.documents.MongoSpeechDocument
     /// @param  textSegments    java.util.List<java.lang.String>
     private void embedDocument(final MongoSpeechDocument speechDocument, final List<String> textSegments) {
         if (this.logger.isTraceEnabled()) {
@@ -294,7 +295,7 @@ public final class Load extends Operation {
 
     /// Insert a new vector document into MongoDb.
     ///
-    /// @param  speechDocument  net.jmp.speeches.store.MongoSpeechDocument
+    /// @param  speechDocument  net.jmp.speeches.documents.MongoSpeechDocument
     /// @param  upsertRecords   java.util.List<java.util.Map<java.lang.String, java.lang.String>>
     private void insertVectorDocument(final MongoSpeechDocument speechDocument, final List<Map<String, String>> upsertRecords) {
         if (this.logger.isTraceEnabled()) {
@@ -347,7 +348,7 @@ public final class Load extends Operation {
 
     /// Get the Mongo speech documents.
     ///
-    /// @return  java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    /// @return  java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
     private List<MongoSpeechDocument> getSpeechDocuments() {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entry());

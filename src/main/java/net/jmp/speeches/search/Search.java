@@ -46,7 +46,7 @@ import net.jmp.speeches.Operation;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
-import net.jmp.speeches.store.MongoSpeechDocument;
+import net.jmp.speeches.documents.MongoSpeechDocument;
 
 import net.jmp.speeches.text.TextAnalyzerResponse;
 
@@ -143,7 +143,7 @@ public final class Search extends Operation {
 
     /// Load the speech title.
     ///
-    /// @param  speechDocuments   java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    /// @param  speechDocuments   java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
     private void loadSpeechTitles(final List<MongoSpeechDocument> speechDocuments) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(speechDocuments));
@@ -160,7 +160,7 @@ public final class Search extends Operation {
 
     /// Load the speech authors.
     ///
-    /// @param  speechDocuments   java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    /// @param  speechDocuments   java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
     private void loadSpeechAuthors(final List<MongoSpeechDocument> speechDocuments) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(speechDocuments));
@@ -222,7 +222,7 @@ public final class Search extends Operation {
 
     /// Get the Mongo speech documents.
     ///
-    /// @return  java.util.List<net.jmp.speeches.store.MongoSpeechDocument>
+    /// @return  java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
     private List<MongoSpeechDocument> getSpeechDocuments() {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entry());

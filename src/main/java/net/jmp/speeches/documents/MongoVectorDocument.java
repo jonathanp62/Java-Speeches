@@ -1,4 +1,4 @@
-package net.jmp.speeches.load;
+package net.jmp.speeches.documents;
 
 /*
  * (#)MongoVectorDocument.java  0.3.0   07/10/2025

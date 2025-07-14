@@ -1,4 +1,4 @@
-package net.jmp.speeches.store;
+package net.jmp.speeches.documents;
 
 /*
  * (#)MongoSpeechDocument.java  0.3.0   07/09/2025

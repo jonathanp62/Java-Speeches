@@ -52,6 +52,8 @@ import java.util.function.UnaryOperator;
 
 import net.jmp.speeches.Operation;
 
+import net.jmp.speeches.documents.MongoSpeechDocument;
+
 import net.jmp.speeches.text.TextAnalyzer;
 import net.jmp.speeches.text.TextAnalyzerResponse;
 
