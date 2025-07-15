@@ -31,6 +31,7 @@ package net.jmp.speeches.search;
 
 import com.mongodb.client.MongoClient;
 
+import io.pinecone.clients.Index;
 import io.pinecone.clients.Pinecone;
 
 import java.util.*;
@@ -45,6 +46,12 @@ import static net.jmp.util.logging.LoggerUtils.*;
 import net.jmp.speeches.documents.MongoSpeechDocument;
 
 import net.jmp.speeches.utils.MongoUtils;
+
+import org.openapitools.db_data.client.ApiException;
+
+import org.openapitools.db_data.client.model.Hit;
+import org.openapitools.db_data.client.model.SearchRecordsResponse;
+import org.openapitools.db_data.client.model.SearchRecordsResponseResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +78,9 @@ public final class Search extends Operation {
 
     /// The Gradle task name.
     private final String gradleTaskName;
+
+    /// The list of fields to be searched within the records.
+    private final List<String> searchFields = List.of("text_segment", "title", "author");
 
     /// The constructor.
     ///
@@ -117,7 +127,7 @@ public final class Search extends Operation {
 
         authorsInQuery.addAll(this.findAuthorLastNames());
 
-        final Map<String, String> filters = new HashMap<>();
+        final Map<String, Object> filters = new HashMap<>();
 
         /* Unfortunately the last title and author are included */
 
@@ -144,13 +154,36 @@ public final class Search extends Operation {
 
     /// Search the Pinecone index.
     ///
-    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
-    private void search(final Map<String, String> filters) {
+    /// @param  filters java.util.Map<java.lang.String, java.lang.Object>
+    private void search(final Map<String, Object> filters) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(filters));
         }
 
-        this.logger.info("In search");
+        try (final Index index = this.pinecone.getIndexConnection(this.searchableIndexName)) {
+            try {
+                final SearchRecordsResponse response = index.searchRecordsByText(
+                        this.queryText,
+                        this.namespace,
+                        this.searchFields,
+                        this.topK,
+                        filters,
+                        null
+                );
+
+                final SearchRecordsResponseResult result = response.getResult();
+                final List<Hit> hits = result.getHits();
+
+                this.logger.info("Search records by text found {} hits: ", hits.size());
+
+                for (final Hit hit : hits) {
+                    this.logHit(hit);
+                    this.logContent(hit);
+                }
+            } catch (final ApiException e) {
+                this.logger.error(catching(e));
+            }
+        }
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -159,13 +192,17 @@ public final class Search extends Operation {
 
     /// Search the Pinecone index by author full name.
     ///
-    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
-    private void searchByAuthorFullName(final Map<String, String> filters) {
+    /// @param  filters java.util.Map<java.lang.String, java.lang.Object>
+    private void searchByAuthorFullName(final Map<String, Object> filters) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(filters));
         }
 
-        this.logger.info("In search by author full name");  // {author=Gerald R. Ford}
+        final String author = (String) filters.get("author");   // {author=Gerald R. Ford}
+
+        this.logger.info("In search by author full name: {}", author);
+
+        this.search(filters);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -174,13 +211,17 @@ public final class Search extends Operation {
 
     /// Search the Pinecone index by author last name.
     ///
-    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
-    private void searchByAuthorLastName(final Map<String, String> filters) {
+    /// @param  filters java.util.Map<java.lang.String, java.lang.Object>
+    private void searchByAuthorLastName(final Map<String, Object> filters) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(filters));
         }
 
-        this.logger.info("In search by author last name");  // {author=Richard M. Nixon}
+        final String author = (String) filters.get("author");   // {author=Richard M. Nixon}
+
+        this.logger.info("In search by author last name: {}", author);
+
+        this.search(filters);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -189,13 +230,18 @@ public final class Search extends Operation {
 
     /// Search the Pinecone index by title and author.
     ///
-    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
-    private void searchByCombo(final Map<String, String> filters) {
+    /// @param  filters java.util.Map<java.lang.String, java.lang.Object>
+    private void searchByCombo(final Map<String, Object> filters) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(filters));
         }
 
-        this.logger.info("In search by combo"); // {author=Richard M. Nixon, title=On taking office}
+        final String author = (String) filters.get("author");   // {author=Abraham Lincoln}
+        final String title = (String) filters.get("title");     // {title=Second Inaugural}
+
+        this.logger.info("In search by combo: {} by {}", title, author);
+
+        this.search(filters);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -204,13 +250,17 @@ public final class Search extends Operation {
 
     /// Search the Pinecone index by title.
     ///
-    /// @param  filters java.util.Map<java.lang.String, java.lang.String>
-    private void searchByTitle(final Map<String, String> filters) {
+    /// @param  filters java.util.Map<java.lang.String, java.lang.Object>
+    private void searchByTitle(final Map<String, Object> filters) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(filters));
         }
 
-        this.logger.info("In search by title"); // {title=Address to British Parliament}
+        final String title = (String) filters.get("title");   // {title=Address to British Parliament}
+
+        this.logger.info("In search by title: {}", title);
+
+        this.search(filters);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -407,6 +457,51 @@ public final class Search extends Operation {
         }
 
         return result;
+    }
+
+    /// Log a hit.
+    ///
+    /// @param  hit org.openapitools.db_data.client.model.Hit
+    private void logHit(final Hit hit) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(hit));
+        }
+
+        if (this.logger.isDebugEnabled()) {
+            this.logger.debug("Score: {}", hit.getScore());
+            this.logger.debug("ID   : {}", hit.getId());
+
+            @SuppressWarnings("unchecked") final Map<String, Object> hitFields = (Map<String, Object>) hit.getFields();
+
+            for (final Map.Entry<String, Object> entry : hitFields.entrySet()) {
+                this.logger.debug("{}: {}", entry.getKey(), entry.getValue());
+            }
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Log the content.
+    ///
+    /// @param  hit org.openapitools.db_data.client.model.Hit
+    private void logContent(final Hit hit) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(hit));
+        }
+
+        @SuppressWarnings("unchecked")
+        final Map<String, Object> hitFields = (Map<String, Object>) hit.getFields();
+        final String content = (String) hitFields.getOrDefault("text_segment", "");
+        final String title = (String) hitFields.getOrDefault("title", "");
+        final String author = (String) hitFields.getOrDefault("author", "");
+
+        this.logger.info("{} - {} by {}", content, title, author);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
     }
 
     /// The builder class.

@@ -165,7 +165,7 @@ tasks.register('search', JavaExec) {
 
 	sysProps.put('app.gradleTaskName', 'search')
 	sysProps.put('app.operation', 'search')
-	sysProps.put('app.queryText', 'How are pardons treated in the United States?')
+	sysProps.put('app.queryText', 'What was said about the war in Vietnam?')
 }
 
 tasks.register('search-by-author-full-name', JavaExec) {
@@ -181,7 +181,7 @@ tasks.register('search-by-author-last-name', JavaExec) {
 
 	sysProps.put('app.gradleTaskName', 'search-by-author-last-name')
 	sysProps.put('app.operation', 'search')
-	sysProps.put('app.queryText', 'What does Nixon have to say about Vietnam?')
+	sysProps.put('app.queryText', 'What does Nixon have to say about communism and the Soviet Union?')
 }
 
 tasks.register('search-by-combo', JavaExec) {
@@ -189,7 +189,7 @@ tasks.register('search-by-combo', JavaExec) {
 
 	sysProps.put('app.gradleTaskName', 'search-by-combo')
 	sysProps.put('app.operation', 'search')
-	sysProps.put('app.queryText', 'What did Richard M. Nixon discuss on taking office?')
+	sysProps.put('app.queryText', 'What did Abram Lincoln discuss in his second inaugural address?')
 }
 
 tasks.register('search-by-title', JavaExec) {
