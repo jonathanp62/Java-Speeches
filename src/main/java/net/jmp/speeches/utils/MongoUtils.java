@@ -50,8 +50,8 @@ import org.slf4j.Logger;
 
 /// The MongoDB utility class.
 ///
-/// @version    0.3.0
-/// @since      0.1.0
+/// @version    0.4.0
+/// @since      0.4.0
 public final class MongoUtils {
     /// The default constructor.
     private MongoUtils() {
