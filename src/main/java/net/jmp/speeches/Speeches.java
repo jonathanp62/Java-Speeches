@@ -51,6 +51,7 @@ import static net.jmp.util.logging.LoggerUtils.*;
 import net.jmp.speeches.create.Create;
 import net.jmp.speeches.delete.Delete;
 import net.jmp.speeches.load.Load;
+import net.jmp.speeches.query.Query;
 import net.jmp.speeches.search.Search;
 import net.jmp.speeches.store.Store;
 
@@ -164,6 +165,7 @@ final class Speeches {
                 case "create" -> this.create(pinecone);
                 case "delete" -> this.delete(pinecone);
                 case "load" -> this.load(pinecone, mongoClient);
+                case "query" -> this.query(pinecone, mongoClient);
                 case "search" -> this.search(pinecone, mongoClient);
                 case "store" -> this.store(mongoClient);
                 default -> this.logger.error("Unknown operation: {}", operation);
@@ -267,6 +269,38 @@ final class Speeches {
                 .build();
 
         load.operate();
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Query the Pinecone index.
+    ///
+    /// @param  pinecone    io.pinecone.clients.Pinecone
+    /// @param  mongoClient org.mongodb.mongo.MongoClient
+    private void query(final Pinecone pinecone, final MongoClient mongoClient) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(pinecone, mongoClient));
+        }
+
+        final Query query = Query.builder()
+                .searchableIndexName(this.searchableIndexName)
+                .searchableEmbeddingModel(this.searchableEmbeddingModel)
+                .pinecone(pinecone)
+                .chatModel(this.chatModel)
+                .namespace(this.namespace)
+                .rerankingModel(this.rerankingModel)
+                .queryText(this.queryText)
+                .openAiApiKey(this.openAiApiKey)
+                .mongoClient(mongoClient)
+                .speechesCollectionName(this.mongoDbCollectionSpeeches)
+                .dbName(this.mongoDbName)
+                .topK(this.topK)
+                .gradleTaskName(System.getProperty("app.gradleTaskName"))
+                .build();
+
+        query.operate();
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
