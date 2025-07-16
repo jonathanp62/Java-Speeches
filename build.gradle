@@ -160,6 +160,14 @@ tasks.register('load', JavaExec) {
 	getSystemProperties().put('app.operation', 'load')
 }
 
+tasks.register('query', JavaExec) {
+	var sysProps = getSystemProperties()
+
+	sysProps.put('app.gradleTaskName', 'query')
+	sysProps.put('app.operation', 'query')
+	sysProps.put('app.queryText', 'What was said about the war in Vietnam?')
+}
+
 tasks.register('search', JavaExec) {
 	var sysProps = getSystemProperties()
 

@@ -52,6 +52,8 @@ public final class Query extends Operation {
     private final String gradleTaskName;
 
     /// The default constructor.
+    ///
+    /// @param  builder net.jmp.speeches.query.Query.Builder
     public Query(final Builder builder) {
         super(Operation.operationBuilder()
                 .pinecone(builder.pinecone)
