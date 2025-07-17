@@ -28,11 +28,20 @@ package net.jmp.speeches.query;
  * SOFTWARE.
  */
 
+import com.google.protobuf.ListValue;
+import com.google.protobuf.Struct;
+import com.google.protobuf.Value;
+
 import com.mongodb.client.MongoClient;
 
 import io.pinecone.clients.Pinecone;
 
+import java.util.Optional;
+import java.util.Set;
+
 import net.jmp.speeches.Operation;
+
+import net.jmp.speeches.utils.MetadataUtil;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
@@ -88,9 +97,160 @@ public final class Query extends Operation {
 
         this.logger.info("Querying Pinecone index: {}", this.searchableIndexName);
 
+        final Optional<Struct> optionalFilter = this.getFilter();
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
+    }
+
+    /// Get the filter.
+    ///
+    /// @return java.util.Optional<com.google.protobuf.Struct>
+    private Optional<Struct> getFilter() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final MetadataUtil metadataUtil = new MetadataUtil(
+                this.mongoClient,
+                this.dbName,
+                this.speechesCollectionName
+        );
+
+        final Set<String> titlesInQuery = metadataUtil.getTitles(this.queryText);
+        final Set<String> authorsInQuery = metadataUtil.getAuthors(this.queryText);
+
+        Struct filter = null;
+
+        if (!titlesInQuery.isEmpty() || !authorsInQuery.isEmpty()) {
+            filter = this.buildFilter(titlesInQuery, authorsInQuery);
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(filter));
+        }
+
+        return Optional.ofNullable(filter);
+    }
+
+    /// Build the filter from titles and authors
+    /// found in the query text.
+    ///
+    /// @param   titles  java.util.Set<java.lang.String>
+    /// @param   authors java.util.Set<java.lang.String>
+    /// @return          com.google.protobuf.Struct
+    private Struct buildFilter(final Set<String> titles, final Set<String> authors) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(titles, authors));
+        }
+
+        Struct titleFilter = null;
+        Struct authorFilter = null;
+
+        if (!titles.isEmpty()) {
+            titleFilter = this.buildTitleFilter(titles);
+        }
+
+        if (!authors.isEmpty()) {
+            authorFilter = this.buildAuthorFilter(authors);
+        }
+
+        Struct filter = null;
+
+        if (titleFilter != null && authorFilter != null) {
+            // Need to start with $and
+            // {"$and": [{"genre": {"$eq": "drama"}}, {"year": {"$gte": 2020}}]}
+        } else {
+            if (titleFilter != null) {
+                filter = titleFilter;
+            } else if (authorFilter != null) {
+                filter = authorFilter;
+            }
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(filter));
+        }
+
+        return filter;
+    }
+
+    /// Build the title filter.
+    ///
+    /// @param   titles  java.util.Set<java.lang.String>
+    /// @return          com.google.protobuf.Struct
+    private Struct buildTitleFilter(final Set<String> titles) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(titles));
+        }
+
+        final Struct filter = this.buildKeyValuesFilter("title", titles);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(filter));
+        }
+
+        return filter;
+    }
+
+    /// Build the author filter.
+    ///
+    /// @param   authors java.util.Set<java.lang.String>
+    /// @return         com.google.protobuf.Struct
+    private Struct buildAuthorFilter(final Set<String> authors) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(authors));
+        }
+
+        final Struct filter = this.buildKeyValuesFilter("author", authors);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(filter));
+        }
+
+        return filter;
+    }
+
+    /// Build the filter for the given key and values.
+    ///
+    /// @param   key    java.lang.String
+    /// @param   values java.util.Set<java.lang.String>
+    /// @return         com.google.protobuf.Struct
+    private Struct buildKeyValuesFilter(final String key, final Set<String> values) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(key, values));
+        }
+
+        Struct filter = null;
+
+        if (values.size() == 1) {
+            filter = Struct.newBuilder()
+                    .putFields(key, Value.newBuilder().setStringValue(values.iterator().next()).build())
+                    .build();
+        } else {
+            final ListValue.Builder listValueBuilder = ListValue.newBuilder();
+
+            for (final String value : values) {
+                listValueBuilder.addValues(Value.newBuilder().setStringValue(value).build());
+            }
+
+            final ListValue valuesList = listValueBuilder.build();
+
+            final Struct inStruct = Struct.newBuilder()
+                    .putFields("$in", Value.newBuilder().setListValue(valuesList).build())
+                    .build();
+
+            filter = Struct.newBuilder()
+                    .putFields(key, Value.newBuilder().setStructValue(inStruct).build())
+                    .build();
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(filter));
+        }
+
+        return filter;
     }
 
     /// The builder class.

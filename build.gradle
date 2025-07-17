@@ -168,6 +168,30 @@ tasks.register('query', JavaExec) {
 	sysProps.put('app.queryText', 'What was said about the war in Vietnam?')
 }
 
+tasks.register('query-by-author-full-name', JavaExec) {
+	var sysProps = getSystemProperties()
+
+	sysProps.put('app.gradleTaskName', 'query-by-author-full-name')
+	sysProps.put('app.operation', 'query')
+	sysProps.put('app.queryText', 'What are the principles cited by Gerald R. Ford in his speeches?')
+}
+
+tasks.register('query-by-author-last-name', JavaExec) {
+	var sysProps = getSystemProperties()
+
+	sysProps.put('app.gradleTaskName', 'query-by-author-last-name')
+	sysProps.put('app.operation', 'query')
+	sysProps.put('app.queryText', 'What does Nixon have to say about communism and the Soviet Union?')
+}
+
+tasks.register('query-by-title', JavaExec) {
+	var sysProps = getSystemProperties()
+
+	sysProps.put('app.gradleTaskName', 'query-by-title')
+	sysProps.put('app.operation', 'query')
+	sysProps.put('app.queryText', 'What is the theme of the address to British Parliament?')
+}
+
 tasks.register('search', JavaExec) {
 	var sysProps = getSystemProperties()
 
