@@ -197,7 +197,7 @@ tasks.register('search-by-combo', JavaExec) {
 
 	sysProps.put('app.gradleTaskName', 'search-by-combo')
 	sysProps.put('app.operation', 'search')
-	sysProps.put('app.queryText', 'What did Abram Lincoln discuss in his second inaugural address?')
+	sysProps.put('app.queryText', 'What did Abraham Lincoln discuss in his second inaugural address?')
 }
 
 tasks.register('search-by-title', JavaExec) {

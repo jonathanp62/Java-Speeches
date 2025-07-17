@@ -31,16 +31,16 @@ package net.jmp.speeches.utils;
 import com.mongodb.client.MongoClient;
 
 import java.util.*;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.jmp.speeches.documents.MongoSpeechDocument;
 
+import static net.jmp.util.logging.LoggerUtils.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static net.jmp.util.logging.LoggerUtils.*;
-import static net.jmp.util.logging.LoggerUtils.entryWith;
 
 /// The metadata utility class.
 ///
@@ -51,13 +51,13 @@ public final class MetadataUtil {
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
 
     /// The MongoDB client.
-    private MongoClient mongoClient;
+    private final MongoClient mongoClient;
 
     /// The database name.
-    private String dbName;
+    private final String dbName;
 
     /// The speeches collection name.
-    private String speechesCollectionName;
+    private final String speechesCollectionName;
 
     /// The set of speech titles.
     private final Set<String> titles = new HashSet<>();
@@ -66,7 +66,7 @@ public final class MetadataUtil {
     private final Set<String> authors = new HashSet<>();
 
     /// The map of speech author last names to their full names.
-    private final Map<String, String> authorNames = new HashMap<>();
+    private final Map<String, String> authorLastNames = new HashMap<>();
 
     /// Regular expression pattern to get the last word in a string (last name).
     private final Pattern patternLastWord = Pattern.compile("(\\w+)$");
@@ -86,22 +86,46 @@ public final class MetadataUtil {
         this.speechesCollectionName = speechesCollectionName;
     }
 
-    /// Compile all possible author and title metadata values.
+    /// Get the set of speech titles found in the query text.
     ///
-    /// @param  queryText  java.lang.String
-    public void compileMetadataValues(final String queryText) {
+    /// @param   queryText  java.lang.String
+    /// @return             java.util.Set<java.lang.String>
+    public Set<String> getTitles(final String queryText) {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(entryWith(queryText));
         }
 
-        final Set<String> titlesInQuery = this.findTitles(queryText);
-        final Set<String> authorsInQuery = this.findAuthorFullNames();
+        this.loadSpeechSets();
 
-        authorsInQuery.addAll(this.findAuthorLastNames());
+        final Set<String> titlesInQuery = this.findTitles(queryText);
 
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exit());
+            this.logger.trace(exitWith(titlesInQuery));
         }
+
+        return titlesInQuery;
+    }
+
+    /// Get the set of speech authors found in the query text.
+    ///
+    /// @param   queryText  java.lang.String
+    /// @return             java.util.Set<java.lang.String>
+    public Set<String> getAuthors(final String queryText) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(queryText));
+        }
+
+        this.loadSpeechSets();
+
+        final Set<String> authorsInQuery = this.findAuthorFullNames(queryText);
+
+        authorsInQuery.addAll(this.findAuthorLastNames(queryText));
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(authorsInQuery));
+        }
+
+        return authorsInQuery;
     }
 
     /// Load the speech sets.
@@ -110,17 +134,19 @@ public final class MetadataUtil {
             this.logger.trace(entry());
         }
 
-        final List<MongoSpeechDocument> speechDocuments = MongoUtils.getSpeechDocuments(
-                this.logger,
-                this.mongoClient,
-                this.dbName,
-                this.speechesCollectionName
-        );
+        if (this.titles.isEmpty() && this.authors.isEmpty()) {
+            final List<MongoSpeechDocument> speechDocuments = MongoUtils.getSpeechDocuments(
+                    this.logger,
+                    this.mongoClient,
+                    this.dbName,
+                    this.speechesCollectionName
+            );
 
-        this.loadSpeechTitles(speechDocuments);
-        this.loadSpeechAuthors(speechDocuments);
+            this.loadSpeechTitles(speechDocuments);
+            this.loadSpeechAuthors(speechDocuments);
 
-        this.loadSpeechAuthorLastNames();
+            this.loadSpeechAuthorLastNames();
+        }
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -170,7 +196,7 @@ public final class MetadataUtil {
         this.authors.forEach(author -> {
             final String authorLastName = this.getAuthorLastName(author).orElse(null);
 
-            this.authorNames.put(authorLastName, author);
+            this.authorLastNames.put(authorLastName, author);
         });
 
         if (this.logger.isTraceEnabled()) {
@@ -220,6 +246,54 @@ public final class MetadataUtil {
         this.titles.forEach(title -> {
             if (this.containsIgnoreCase(title, queryText)) {
                 results.add(title);
+            }
+        });
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(results));
+        }
+
+        return results;
+    }
+
+    /// Find the author full names in the query text.
+    ///
+    /// @param  queryText   java.lang.String
+    /// @return             java.util.Set<java.lang.String>
+    private Set<String> findAuthorFullNames(final String queryText) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(queryText));
+        }
+
+        final Set<String> results = new HashSet<>();
+
+        this.authors.forEach(author -> {
+            if (this.containsIgnoreCase(author, queryText)) {
+                results.add(author);
+            }
+        });
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(results));
+        }
+
+        return results;
+    }
+
+    /// Find the author last names in the query text.
+    ///
+    /// @param  queryText   java.lang.String
+    /// @return             java.util.Set<java.lang.String>
+    private Set<String> findAuthorLastNames(final String queryText) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(queryText));
+        }
+
+        final Set<String> results = new HashSet<>();
+
+        this.authorLastNames.keySet().forEach(lastName -> {
+            if (this.containsIgnoreCase(lastName, queryText)) {
+                results.add(this.authorLastNames.get(lastName));
             }
         });
 

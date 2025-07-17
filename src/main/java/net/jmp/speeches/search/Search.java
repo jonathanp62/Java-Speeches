@@ -36,16 +36,11 @@ import io.pinecone.clients.Pinecone;
 
 import java.util.*;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import net.jmp.speeches.Operation;
 
+import net.jmp.speeches.utils.MetadataUtil;
+
 import static net.jmp.util.logging.LoggerUtils.*;
-
-import net.jmp.speeches.documents.MongoSpeechDocument;
-
-import net.jmp.speeches.utils.MongoUtils;
 
 import org.openapitools.db_data.client.ApiException;
 
@@ -63,18 +58,6 @@ import org.slf4j.LoggerFactory;
 public final class Search extends Operation {
     /// The logger.
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getName());
-
-    /// The set of speech titles.
-    private final Set<String> titles = new HashSet<>();
-
-    /// The set of speech authors.
-    private final Set<String> authors = new HashSet<>();
-
-    /// The map of speech author last names to their full names.
-    private final Map<String, String> authorNames = new HashMap<>();
-
-    /// Regular expression pattern to get the last word in a string (last name).
-    private final Pattern patternLastWord = Pattern.compile("(\\w+)$");
 
     /// The Gradle task name.
     private final String gradleTaskName;
@@ -120,21 +103,7 @@ public final class Search extends Operation {
 
         this.logger.info("Searching Pinecone index: {}", this.searchableIndexName);
 
-        this.loadSpeechSets();
-
-        final Set<String> titlesInQuery = this.findTitles();
-        final Set<String> authorsInQuery = this.findAuthorFullNames();
-
-        authorsInQuery.addAll(this.findAuthorLastNames());
-
-        final Map<String, Object> filters = new HashMap<>();
-
-        /* Unfortunately the last title and author are included */
-
-        if (!titlesInQuery.isEmpty() || !authorsInQuery.isEmpty()) {
-            titlesInQuery.forEach(title -> filters.put("title", title));
-            authorsInQuery.forEach(author -> filters.put("author", author));
-        }
+        final Map<String, Object> filters = this.getFilters();
 
         /* Search by Gradle task name */
 
@@ -150,6 +119,39 @@ public final class Search extends Operation {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
+    }
+
+    /// Get the filters.
+    ///
+    /// @return java.util.Map<java.lang.String, java.lang.Object>
+    private Map<String, Object> getFilters() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        final MetadataUtil metadataUtil = new MetadataUtil(
+                this.mongoClient,
+                this.dbName,
+                this.speechesCollectionName
+        );
+
+        final Set<String> titlesInQuery = metadataUtil.getTitles(this.queryText);
+        final Set<String> authorsInQuery = metadataUtil.getAuthors(this.queryText);
+
+        final Map<String, Object> filters = new HashMap<>();
+
+        /* Unfortunately only the last title and author are included */
+
+        if (!titlesInQuery.isEmpty() || !authorsInQuery.isEmpty()) {
+            titlesInQuery.forEach(title -> filters.put("title", title));
+            authorsInQuery.forEach(author -> filters.put("author", author));
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(filters));
+        }
+
+        return filters;
     }
 
     /// Search the Pinecone index.
@@ -265,198 +267,6 @@ public final class Search extends Operation {
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
-    }
-
-    /// Load the speech sets.
-    private void loadSpeechSets() {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entry());
-        }
-
-        final List<MongoSpeechDocument> speechDocuments = MongoUtils.getSpeechDocuments(
-                this.logger,
-                this.mongoClient,
-                this.dbName,
-                this.speechesCollectionName
-        );
-
-        this.loadSpeechTitles(speechDocuments);
-        this.loadSpeechAuthors(speechDocuments);
-
-        this.loadSpeechAuthorLastNames();
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exit());
-        }
-    }
-
-    /// Load the speech title.
-    ///
-    /// @param  speechDocuments   java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
-    private void loadSpeechTitles(final List<MongoSpeechDocument> speechDocuments) {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(speechDocuments));
-        }
-
-        for (final MongoSpeechDocument speechDocument : speechDocuments) {
-            this.titles.add(speechDocument.getTextAnalysis().getTitle());
-        }
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exit());
-        }
-    }
-
-    /// Load the speech authors.
-    ///
-    /// @param  speechDocuments   java.util.List<net.jmp.speeches.documents.MongoSpeechDocument>
-    private void loadSpeechAuthors(final List<MongoSpeechDocument> speechDocuments) {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(speechDocuments));
-        }
-
-        for (final MongoSpeechDocument speechDocument : speechDocuments) {
-            this.authors.add(speechDocument.getTextAnalysis().getAuthor());
-        }
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exit());
-        }
-    }
-
-    /// Load the speech author last names.
-    private void loadSpeechAuthorLastNames() {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entry());
-        }
-
-        this.authors.forEach(author -> {
-            final String authorLastName = this.getAuthorLastName(author).orElse(null);
-
-            this.authorNames.put(authorLastName, author);
-        });
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exit());
-        }
-    }
-
-    /// Get the author last name.
-    ///
-    /// @param  author  java.lang.String
-    /// @return         java.util.Optional<java.lang.String>
-    private Optional<String> getAuthorLastName(final String author) {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(author));
-        }
-
-        String result = null;
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exit());
-        }
-
-        final Matcher matcher = this.patternLastWord.matcher(author);
-
-        if (matcher.find()) {
-            result = matcher.group(1); // Group 1 contains the captured last name
-        }
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(result));
-        }
-
-        return Optional.ofNullable(result);
-    }
-
-    /// Find the author full names in the query text.
-    ///
-    /// @return  java.util.Set<java.lang.String>
-    private Set<String> findAuthorFullNames() {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entry());
-        }
-
-        final Set<String> results = new HashSet<>();
-
-        this.authors.forEach(author -> {
-            if (this.containsIgnoreCase(author)) {
-                results.add(author);
-            }
-        });
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(results));
-        }
-
-        return results;
-    }
-
-    /// Find the author last names in the query text.
-    ///
-    /// @return  java.util.Set<java.lang.String>
-    private Set<String> findAuthorLastNames() {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entry());
-        }
-
-        final Set<String> results = new HashSet<>();
-
-        this.authorNames.keySet().forEach(lastName -> {
-            if (this.containsIgnoreCase(lastName)) {
-                results.add(this.authorNames.get(lastName));
-            }
-        });
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(results));
-        }
-
-        return results;
-    }
-
-    /// Find the speech titles in the query text.
-    ///
-    /// @return  java.util.Set<java.lang.String>
-    private Set<String> findTitles() {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entry());
-        }
-
-        final Set<String> results = new HashSet<>();
-
-        this.titles.forEach(title -> {
-            if (this.containsIgnoreCase(title)) {
-                results.add(title);
-            }
-        });
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(results));
-        }
-
-        return results;
-    }
-
-    /// Check if the search string is contained in the
-    /// query text without any case sensitivity.
-    ///
-    /// @param  searchString    java.lang.String
-    /// @return                 boolean
-    private boolean containsIgnoreCase(final String searchString) {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(searchString));
-        }
-
-        final Pattern pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
-        final Matcher matcher = pattern.matcher(this.queryText);
-        final boolean result = matcher.find();
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(result));
-        }
-
-        return result;
     }
 
     /// Log a hit.
