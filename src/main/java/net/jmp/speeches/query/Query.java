@@ -34,8 +34,12 @@ import com.google.protobuf.Value;
 
 import com.mongodb.client.MongoClient;
 
+import io.pinecone.clients.Index;
 import io.pinecone.clients.Inference;
 import io.pinecone.clients.Pinecone;
+
+import io.pinecone.unsigned_indices_model.QueryResponseWithUnsignedIndices;
+import io.pinecone.unsigned_indices_model.ScoredVectorWithUnsignedIndices;
 
 import java.util.*;
 
@@ -111,11 +115,11 @@ public final class Query extends Operation {
             /* Query by Gradle task name */
 
             switch (this.gradleTaskName) {
-                case "query" -> this.query(optionalFilter.orElse(null));
-                case "query-by-author-full-name" -> this.queryByAuthorFullName(optionalFilter.orElse(null));
-                case "query-by-author-last-name" -> this.queryByAuthorLastName(optionalFilter.orElse(null));
-                case "query-by-combo" -> this.queryByCombo(optionalFilter.orElse(null));
-                case "query-by-title" -> this.queryByTitle(optionalFilter.orElse(null));
+                case "query" -> this.query(vectors, optionalFilter.orElse(null));
+                case "query-by-author-full-name" -> this.queryByAuthorFullName(vectors, optionalFilter.orElse(null));
+                case "query-by-author-last-name" -> this.queryByAuthorLastName(vectors, optionalFilter.orElse(null));
+                case "query-by-combo" -> this.queryByCombo(vectors, optionalFilter.orElse(null));
+                case "query-by-title" -> this.queryByTitle(vectors, optionalFilter.orElse(null));
                 default -> this.logger.error("Unrecognized Gradle task name: {}", this.gradleTaskName);
             }
         }
@@ -127,13 +131,41 @@ public final class Query extends Operation {
 
     /// Query the Pinecone index.
     ///
-    /// @param  filter com.google.protobuf.Struct
-    private void query(final Struct filter) {
+    /// @param  queryVector java.util.List<java.lang.Float>
+    /// @param  filter      com.google.protobuf.Struct
+    private void query(final List<Float> queryVector, final Struct filter) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(filter));
+            this.logger.trace(entryWith(queryVector, filter));
         }
 
         this.logger.info("In query; filter: {}", filter);
+
+        List<ScoredVectorWithUnsignedIndices> matches;
+
+        try (final Index index = this.pinecone.getIndexConnection(this.searchableIndexName)) {
+            final QueryResponseWithUnsignedIndices queryResponse =
+                    index.query(this.topK,
+                            queryVector,
+                            null,
+                            null,
+                            null,
+                            this.namespace,
+                            filter,
+                            true,
+                            true);
+
+            matches = queryResponse.getMatchesList();
+
+            for (final ScoredVectorWithUnsignedIndices match : matches) {
+                final Struct metadata = match.getMetadata();
+                final Map<String, Value> fields = metadata.getFieldsMap();
+                final String author = fields.get("author").getStringValue();
+                final String title = fields.get("title").getStringValue();
+                final String content = fields.get("text_segment").getStringValue();
+
+                this.logger.info("{} - {} by {}", content, title, author);
+            }
+        }
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -142,13 +174,16 @@ public final class Query extends Operation {
 
     /// Query the Pinecone index by author full name.
     ///
-    /// @param  filter com.google.protobuf.Struct
-    private void queryByAuthorFullName(final Struct filter) {
+    /// @param  queryVector java.util.List<java.lang.Float>
+    /// @param  filter      com.google.protobuf.Struct
+    private void queryByAuthorFullName(final List<Float> queryVector, final Struct filter) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(filter));
+            this.logger.trace(entryWith(queryVector, filter));
         }
 
-        this.logger.info("In query by author full name; filter: {}", filter);
+        this.logger.info("In query by author full name");
+
+        this.query(queryVector, filter);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -157,13 +192,16 @@ public final class Query extends Operation {
 
     /// Query the Pinecone index by author last name.
     ///
-    /// @param  filter com.google.protobuf.Struct
-    private void queryByAuthorLastName(final Struct filter) {
+    /// @param  queryVector java.util.List<java.lang.Float>
+    /// @param  filter      com.google.protobuf.Struct
+    private void queryByAuthorLastName(final List<Float> queryVector, final Struct filter) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(filter));
+            this.logger.trace(entryWith(queryVector, filter));
         }
 
-        this.logger.info("In query by author last name; filter: {}", filter);
+        this.logger.info("In query by author last name");
+
+        this.query(queryVector, filter);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -172,13 +210,16 @@ public final class Query extends Operation {
 
     /// Query the Pinecone index by combo (author and title).
     ///
-    /// @param  filter com.google.protobuf.Struct
-    private void queryByCombo(final Struct filter) {
+    /// @param  queryVector java.util.List<java.lang.Float>
+    /// @param  filter      com.google.protobuf.Struct
+    private void queryByCombo(final List<Float> queryVector, final Struct filter) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(filter));
+            this.logger.trace(entryWith(queryVector, filter));
         }
 
-        this.logger.info("In query by combo; filter: {}", filter);
+        this.logger.info("In query by combo");
+
+        this.query(queryVector, filter);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -187,13 +228,16 @@ public final class Query extends Operation {
 
     /// Query the Pinecone index by title.
     ///
-    /// @param  filter com.google.protobuf.Struct
-    private void queryByTitle(final Struct filter) {
+    /// @param  queryVector java.util.List<java.lang.Float>
+    /// @param  filter      com.google.protobuf.Struct
+    private void queryByTitle(final List<Float> queryVector, final Struct filter) {
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(filter));
+            this.logger.trace(entryWith(queryVector, filter));
         }
 
-        this.logger.info("In query by title; filter: {}", filter);
+        this.logger.info("In query by title");
+
+        this.query(queryVector, filter);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
