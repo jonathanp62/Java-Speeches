@@ -34,16 +34,21 @@ import com.google.protobuf.Value;
 
 import com.mongodb.client.MongoClient;
 
+import io.pinecone.clients.Inference;
 import io.pinecone.clients.Pinecone;
 
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import net.jmp.speeches.Operation;
 
 import net.jmp.speeches.utils.MetadataUtil;
 
 import static net.jmp.util.logging.LoggerUtils.*;
+
+import org.openapitools.inference.client.ApiException;
+
+import org.openapitools.inference.client.model.Embedding;
+import org.openapitools.inference.client.model.EmbeddingsList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +103,7 @@ public final class Query extends Operation {
         this.logger.info("Querying Pinecone index: {}", this.searchableIndexName);
 
         final Optional<Struct> optionalFilter = this.getFilter();
+        final List<Float> vectors = this.queryTextToVectors();
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
@@ -259,6 +265,49 @@ public final class Query extends Operation {
         }
 
         return filter;
+    }
+
+    /// Convert the query text to a list of vectors.
+    ///
+    /// @return java.util.List<java.lang.Float>
+    private List<Float> queryTextToVectors() {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entry());
+        }
+
+        List<Float> vectors = new ArrayList<>();
+
+        final Map<String, Object> parameters = new HashMap<>();
+        final Inference client = this.pinecone.getInferenceClient();
+
+        parameters.put("input_type", "query");
+        parameters.put("truncate", "END");
+
+        EmbeddingsList embeddings = null;
+
+        try {
+            embeddings = client.embed(this.searchableEmbeddingModel, parameters, List.of(this.queryText));
+        } catch (ApiException e) {
+            this.logger.error(e.getMessage());
+        }
+
+        if (embeddings != null) {
+            final List<Embedding> embeddingsList = embeddings.getData();
+
+            assert embeddingsList.size() == 1;
+
+            vectors = embeddingsList.getFirst().getDenseEmbedding().getValues();
+
+            if (this.logger.isDebugEnabled()) {
+                this.logger.debug("Query: {}: {}", queryText, embeddings.toJson());
+            }
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(vectors));
+        }
+
+        return vectors;
     }
 
     /// The builder class.
