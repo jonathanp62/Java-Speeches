@@ -1,11 +1,12 @@
 /*
+ * (#)build.gradle  0.5.0   07/18/2025
  * (#)build.gradle  0.4.0   07/11/2025
  * (#)build.gradle  0.3.0   07/08/2025
  * (#)build.gradle  0.2.0   07/08/2025
  * (#)build.gradle  0.1.0   07/05/2025
  *
  * @author   Jonathan Parker
- * @version  0.4.0
+ * @version  0.5.0
  * @since    0.1.0
  *
  * MIT License
@@ -60,7 +61,7 @@ ext {
 	openaiApiKey = 'etc/open-ai-api-key.txt'
 	pineconeApiKey = 'etc/pinecone-api-key.txt'
 	project.group = 'net.jmp.pinecone.quickstart'
-	project.version = '0.4.0'
+	project.version = '0.5.0'
 	project.description = 'to work with NLP and AI using famous presidential speeches'
 	rerankingModel = 'bge-reranker-v2-m3'
 	searchableEmbeddingModel = 'multilingual-e5-large'

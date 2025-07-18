@@ -42,6 +42,7 @@ Gradle JavaExec Tasks
 |create               |Optional: --args="--log-level"
 |delete               |Optional: --args="--log-level"
 |load                 |Optional: --args="--log-level"
+|query                |Optional: --args="--log-level"
 |search               |Optional: --args="--log-level"
 |store                |Optional: --args="--log-level"
 |====================================================
@@ -69,5 +70,5 @@ System Properties
 |app.topK                    |10
 |===================================================
 
-Current version: 0.4.0.
+Current version: 0.5.0.
 ~~~~~~~~~~~~~~~~~~~~~~~
