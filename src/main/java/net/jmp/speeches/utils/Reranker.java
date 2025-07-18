@@ -28,13 +28,20 @@ package net.jmp.speeches.utils;
  * SOFTWARE.
  */
 
+import io.pinecone.clients.Inference;
 import io.pinecone.clients.Pinecone;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static net.jmp.util.logging.LoggerUtils.*;
+
+import org.openapitools.inference.client.ApiException;
+
+import org.openapitools.inference.client.model.RankedDocument;
+import org.openapitools.inference.client.model.RerankResult;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,16 +93,64 @@ public final class Reranker {
             this.logger.trace(entryWith(documents));
         }
 
-        final List<String> results = new ArrayList<>();
+        final List<String> rankFields = List.of("text_segment");
 
-        for (final Map<String, Object> document : documents) {
-            results.add((String) document.get("text_segment"));
+        /* Create the parameters for the reranking model */
+
+        final Map<String, Object> parameters = new HashMap<>();
+
+        parameters.put("truncate", "END");
+
+        /* Perform the reranking */
+
+        final Inference inference = this.pinecone.getInferenceClient();
+
+        RerankResult result = null;
+
+        try {
+            result = inference.rerank(
+                    this.rerankingModel,
+                    this.queryText,
+                    documents,
+                    rankFields,
+                    this.topN,
+                    true,
+                    parameters
+            );
+        } catch (ApiException e) {
+            this.logger.error(e.getMessage());
+        }
+
+        /* Create the list of ranked text segments */
+
+        final List<String> rankedTextSegments = new ArrayList<>();
+
+        if (result != null) {
+            final List<RankedDocument> rankedDocuments = result.getData();
+
+            for (final RankedDocument rankedDocument : rankedDocuments) {
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug("Document: {}", rankedDocument.toJson());
+                }
+
+                final Map<String, Object> document = rankedDocument.getDocument();
+
+                assert document != null;
+
+                final String textSegment = (String) document.get("text_segment");
+
+                if (this.logger.isDebugEnabled()) {
+                    this.logger.debug("Text segment : {}", textSegment);
+                }
+
+                rankedTextSegments.add(textSegment);
+            }
         }
 
         if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exitWith(results));
+            this.logger.trace(exitWith(rankedTextSegments));
         }
 
-        return results;
+        return rankedTextSegments;
     }
 }
