@@ -159,8 +159,16 @@ public final class Query extends Operation {
         Struct filter = null;
 
         if (titleFilter != null && authorFilter != null) {
-            // Need to start with $and
-            // {"$and": [{"genre": {"$eq": "drama"}}, {"year": {"$gte": 2020}}]}
+            final ListValue.Builder listValueBuilder = ListValue.newBuilder();
+
+            listValueBuilder.addValues(Value.newBuilder().setStructValue(titleFilter).build());
+            listValueBuilder.addValues(Value.newBuilder().setStructValue(authorFilter).build());
+
+            final ListValue valuesList = listValueBuilder.build();
+
+            filter = Struct.newBuilder()
+                    .putFields("$and", Value.newBuilder().setListValue(valuesList).build())
+                    .build();
         } else {
             if (titleFilter != null) {
                 filter = titleFilter;
