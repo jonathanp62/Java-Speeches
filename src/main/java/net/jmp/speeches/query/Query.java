@@ -105,6 +105,96 @@ public final class Query extends Operation {
         final Optional<Struct> optionalFilter = this.getFilter();
         final List<Float> vectors = this.queryTextToVectors();
 
+        if (vectors.isEmpty()) {
+            this.logger.error("No vectors created for query text: {}", this.queryText);
+        } else {
+            /* Query by Gradle task name */
+
+            switch (this.gradleTaskName) {
+                case "query" -> this.query(optionalFilter.orElse(null));
+                case "query-by-author-full-name" -> this.queryByAuthorFullName(optionalFilter.orElse(null));
+                case "query-by-author-last-name" -> this.queryByAuthorLastName(optionalFilter.orElse(null));
+                case "query-by-combo" -> this.queryByCombo(optionalFilter.orElse(null));
+                case "query-by-title" -> this.queryByTitle(optionalFilter.orElse(null));
+                default -> this.logger.error("Unrecognized Gradle task name: {}", this.gradleTaskName);
+            }
+        }
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Query the Pinecone index.
+    ///
+    /// @param  filter com.google.protobuf.Struct
+    private void query(final Struct filter) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filter));
+        }
+
+        this.logger.info("In query; filter: {}", filter);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Query the Pinecone index by author full name.
+    ///
+    /// @param  filter com.google.protobuf.Struct
+    private void queryByAuthorFullName(final Struct filter) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filter));
+        }
+
+        this.logger.info("In query by author full name; filter: {}", filter);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Query the Pinecone index by author last name.
+    ///
+    /// @param  filter com.google.protobuf.Struct
+    private void queryByAuthorLastName(final Struct filter) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filter));
+        }
+
+        this.logger.info("In query by author last name; filter: {}", filter);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Query the Pinecone index by combo (author and title).
+    ///
+    /// @param  filter com.google.protobuf.Struct
+    private void queryByCombo(final Struct filter) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filter));
+        }
+
+        this.logger.info("In query by combo; filter: {}", filter);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exit());
+        }
+    }
+
+    /// Query the Pinecone index by title.
+    ///
+    /// @param  filter com.google.protobuf.Struct
+    private void queryByTitle(final Struct filter) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(filter));
+        }
+
+        this.logger.info("In query by title; filter: {}", filter);
+
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
