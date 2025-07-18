@@ -1,6 +1,7 @@
 package net.jmp.speeches.search;
 
 /*
+ * (#)Search.java   0.5.0   07/18/2025
  * (#)Search.java   0.4.0   07/12/2025
  * (#)Search.java   0.1.0   07/05/2025
  *
@@ -39,6 +40,7 @@ import java.util.*;
 import net.jmp.speeches.Operation;
 
 import net.jmp.speeches.utils.MetadataUtil;
+import net.jmp.speeches.utils.Reranker;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
@@ -53,7 +55,7 @@ import org.slf4j.LoggerFactory;
 
 /// The search Pinecone index class.
 ///
-/// @version    0.4.0
+/// @version    0.5.0
 /// @since      0.1.0
 public final class Search extends Operation {
     /// The logger.
@@ -162,6 +164,8 @@ public final class Search extends Operation {
             this.logger.trace(entryWith(filters));
         }
 
+        List<Hit> hits = new ArrayList<>();
+
         try (final Index index = this.pinecone.getIndexConnection(this.searchableIndexName)) {
             try {
                 final SearchRecordsResponse response = index.searchRecordsByText(
@@ -174,22 +178,68 @@ public final class Search extends Operation {
                 );
 
                 final SearchRecordsResponseResult result = response.getResult();
-                final List<Hit> hits = result.getHits();
 
-                this.logger.info("Search records by text found {} hits: ", hits.size());
-
-                for (final Hit hit : hits) {
-                    this.logHit(hit);
-                    this.logContent(hit);
-                }
+                hits = result.getHits();
             } catch (final ApiException e) {
                 this.logger.error(catching(e));
+            }
+        }
+
+        this.logger.info("Search found {} hits: ", hits.size());
+
+        for (final Hit hit : hits) {
+            this.logHit(hit);
+        }
+
+        if (!hits.isEmpty()) {
+            final List<String> reranked = this.rerank(hits);
+
+            for (final String item : reranked) {
+                this.logger.info(item);
             }
         }
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
+    }
+
+    /// Rerank the documents.
+    ///
+    /// @param  hits java.util.List<net.pinecone.client.model.Hit>
+    /// @return      java.util.List<java.lang.String>
+    private List<String> rerank(final List<Hit> hits) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(hits));
+        }
+
+        final Reranker reranker = new Reranker(
+                this.pinecone,
+                this.rerankingModel,
+                this.queryText,
+                this.topK
+        );
+
+        final List<Map<String, Object>> hitsToRerank = new ArrayList<>();
+
+        for (final Hit hit : hits) {
+            final Map<String, Object> hitToRerank = new HashMap<>();
+
+            @SuppressWarnings("unchecked")
+            final Map<String, Object> hitFields = (Map<String, Object>) hit.getFields();
+
+            hitToRerank.put("text_segment", hitFields.getOrDefault("text_segment", ""));
+
+            hitsToRerank.add(hitToRerank);
+        }
+
+        final List<String> reranked = reranker.rerank(hitsToRerank);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(reranked));
+        }
+
+        return reranked;
     }
 
     /// Search the Pinecone index by author full name.
@@ -287,27 +337,6 @@ public final class Search extends Operation {
                 this.logger.debug("{}: {}", entry.getKey(), entry.getValue());
             }
         }
-
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(exit());
-        }
-    }
-
-    /// Log the content.
-    ///
-    /// @param  hit org.openapitools.db_data.client.model.Hit
-    private void logContent(final Hit hit) {
-        if (this.logger.isTraceEnabled()) {
-            this.logger.trace(entryWith(hit));
-        }
-
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> hitFields = (Map<String, Object>) hit.getFields();
-        final String content = (String) hitFields.getOrDefault("text_segment", "");
-        final String title = (String) hitFields.getOrDefault("title", "");
-        final String author = (String) hitFields.getOrDefault("author", "");
-
-        this.logger.info("{} - {} by {}", content, title, author);
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());

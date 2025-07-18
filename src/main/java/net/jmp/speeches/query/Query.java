@@ -1,6 +1,7 @@
 package net.jmp.speeches.query;
 
 /*
+ * (#)Query.java    0.5.0   07/18/2025
  * (#)Query.java    0.4.0   07/16/2025
  *
  * @author   Jonathan Parker
@@ -46,6 +47,7 @@ import java.util.*;
 import net.jmp.speeches.Operation;
 
 import net.jmp.speeches.utils.MetadataUtil;
+import net.jmp.speeches.utils.Reranker;
 
 import static net.jmp.util.logging.LoggerUtils.*;
 
@@ -59,7 +61,7 @@ import org.slf4j.LoggerFactory;
 
 /// The query Pinecone index class.
 ///
-/// @version    0.4.0
+/// @version    0.5.0
 /// @since      0.4.0
 public final class Query extends Operation {
     /// The logger.
@@ -155,21 +157,59 @@ public final class Query extends Operation {
                             true);
 
             matches = queryResponse.getMatchesList();
+        }
 
-            for (final ScoredVectorWithUnsignedIndices match : matches) {
-                final Struct metadata = match.getMetadata();
-                final Map<String, Value> fields = metadata.getFieldsMap();
-                final String author = fields.get("author").getStringValue();
-                final String title = fields.get("title").getStringValue();
-                final String content = fields.get("text_segment").getStringValue();
+        this.logger.info("Query found {} matches: ", matches.size());
 
-                this.logger.info("{} - {} by {}", content, title, author);
+        if (!matches.isEmpty()) {
+            final List<String> reranked = this.rerank(matches);
+
+            for (final String item : reranked) {
+                this.logger.info(item);
             }
         }
 
         if (this.logger.isTraceEnabled()) {
             this.logger.trace(exit());
         }
+    }
+
+    /// Rerank the documents.
+    ///
+    /// @param  matches java.util.List<net.jmp.speeches.utils.ScoredVectorWithUnsignedIndices>
+    /// @return         java.util.List<java.lang.String>
+    private List<String> rerank(final List<ScoredVectorWithUnsignedIndices> matches) {
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(entryWith(matches));
+        }
+
+        final Reranker reranker = new Reranker(
+                this.pinecone,
+                this.rerankingModel,
+                this.queryText,
+                this.topK
+        );
+
+        final List<Map<String, Object>> matchesToRerank = new ArrayList<>();
+
+        for (final ScoredVectorWithUnsignedIndices match : matches) {
+            final Struct metadata = match.getMetadata();
+            final Map<String, Value> fields = metadata.getFieldsMap();
+
+            final Map<String, Object> matchToRerank = new HashMap<>();
+
+            matchToRerank.put("text_segment", fields.get("text_segment").getStringValue());
+
+            matchesToRerank.add(matchToRerank);
+        }
+
+        final List<String> reranked = reranker.rerank(matchesToRerank);
+
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(exitWith(reranked));
+        }
+
+        return reranked;
     }
 
     /// Query the Pinecone index by author full name.
